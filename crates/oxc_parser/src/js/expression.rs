@@ -1024,9 +1024,10 @@ impl<'a> ParserImpl<'a> {
             )
         });
         self.expect(Kind::RParen);
-        
+
         // Check if this is an ArkUI component expression (has children block)
-        if self.at(Kind::LCurly) {
+        // Only parse as ArkUI if this is an ETS file (ArkUI variant)
+        if self.source_type.is_arkui() && self.at(Kind::LCurly) {
             // This is an ArkUI component expression
             return self.parse_arkui_component_expression_after_args(
                 lhs_span,
@@ -1035,7 +1036,7 @@ impl<'a> ParserImpl<'a> {
                 call_arguments,
             );
         }
-        
+
         self.ast.expression_call(
             self.end_span(lhs_span),
             lhs,

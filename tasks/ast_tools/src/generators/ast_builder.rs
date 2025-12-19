@@ -495,9 +495,13 @@ fn generate_builder_method_for_enum_variant(
         variant_type = box_def.inner_type(schema);
         is_boxed = true;
     }
-    let TypeDef::Struct(struct_def) = variant_type else { 
-        panic!("Unsupported enum variant type for {}::{}: {:?}", 
-               enum_def.name(), variant.name(), variant_type) 
+    let TypeDef::Struct(struct_def) = variant_type else {
+        panic!(
+            "Unsupported enum variant type for {}::{}: {:?}",
+            enum_def.name(),
+            variant.name(),
+            variant_type
+        )
     };
 
     let (mut params, generic_params, where_clause, has_default_fields) =

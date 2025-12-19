@@ -1853,10 +1853,7 @@ impl<'a, 'b> FormatStructElementWithSemicolon<'a, 'b> {
 
 impl<'a> Format<'a> for FormatStructElementWithSemicolon<'a, '_> {
     fn fmt(&self, f: &mut Formatter<'_, 'a>) {
-        let needs_semi = matches!(
-            self.element.as_ref(),
-            StructElement::PropertyDefinition(_)
-        );
+        let needs_semi = matches!(self.element.as_ref(), StructElement::PropertyDefinition(_));
 
         let needs_semi = needs_semi
             && match f.options().semicolons {
@@ -1885,7 +1882,6 @@ impl<'a> Format<'a> for (&AstNode<'a, StructElement<'a>>, Option<&AstNode<'a, St
     }
 }
 
-
 /// Helper to format ArkUI chain expressions (like `.onClick(...)`) without the object
 struct FormatArkUIChainExpression<'a, 'b>(&'b AstNode<'a, CallExpression<'a>>);
 
@@ -1901,7 +1897,7 @@ impl<'a> Format<'a> for FormatArkUIChainExpression<'a, '_> {
                 // Access fields directly since member is a Box<StaticMemberExpression>
                 // Format the property name directly as text
                 let property_text = text_without_whitespace(member.property.name.as_str());
-                
+
                 // Use line_suffix_boundary to allow breaking before the dot
                 write!(
                     f,
@@ -1954,7 +1950,10 @@ impl<'a> Format<'a> for FormatArkUIChainExpression<'a, '_> {
 }
 
 /// Check if ArkUI chain expressions should break into multiple lines
-fn should_break_arkui_chain(chain_expressions: &[CallExpression<'_>], _f: &Formatter<'_, '_>) -> bool {
+fn should_break_arkui_chain(
+    chain_expressions: &[CallExpression<'_>],
+    _f: &Formatter<'_, '_>,
+) -> bool {
     if chain_expressions.len() > 1 {
         return true;
     }
@@ -1974,7 +1973,8 @@ fn should_break_arkui_chain(chain_expressions: &[CallExpression<'_>], _f: &Forma
                         // Check if the argument is a complex expression (object, array, etc.)
                         if let Some(expr) = arg.as_expression() {
                             match expr {
-                                Expression::ObjectExpression(_) | Expression::ArrayExpression(_) => {
+                                Expression::ObjectExpression(_)
+                                | Expression::ArrayExpression(_) => {
                                     return true;
                                 }
                                 _ => {}
@@ -2019,7 +2019,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
         // Support line breaks when the chain is too long
         if !chain_expressions.as_ref().is_empty() {
             let should_break = should_break_arkui_chain(chain_expressions.as_ref(), f);
-            
+
             if should_break {
                 // Force multi-line format when chain should break
                 // Each chain expression should be on a new line with indentation
@@ -2043,7 +2043,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
                         write!(f, [FormatArkUIChainExpression(chain_expr_node)]);
                     }
                 });
-                
+
                 // In multi-line format, each chain expression should be on a new line with indentation
                 let format_chains_multi_line = format_with(|f| {
                     for (i, chain_expr_node) in chain_expressions.iter().enumerate() {
@@ -2053,12 +2053,18 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
                         write!(f, [FormatArkUIChainExpression(chain_expr_node)]);
                     }
                 });
-                
+
                 // Use best_fitting to choose between single-line and multi-line formatting
                 // This allows the formatter to break the chain when it's too long
                 // Wrap in a group to allow breaking when needed
                 let format_content = format_with(|f| {
-                    write!(f, [best_fitting!(format_chains_single_line, indent(&format_chains_multi_line))]);
+                    write!(
+                        f,
+                        [best_fitting!(
+                            format_chains_single_line,
+                            indent(&format_chains_multi_line)
+                        )]
+                    );
                 });
                 write!(f, [group(&format_content)]);
             }

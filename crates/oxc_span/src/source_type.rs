@@ -76,6 +76,8 @@ pub enum LanguageVariant {
     Standard = 0,
     /// For sources using JSX or TSX
     Jsx = 1,
+    /// For sources using ArkUI (ETS files)
+    Arkui = 2,
 }
 
 impl Default for SourceType {
@@ -102,7 +104,8 @@ impl ContentEq for SourceType {
 }
 
 /// Valid file extensions.
-pub const VALID_EXTENSIONS: &[&str] = &["js", "mjs", "cjs", "jsx", "ts", "mts", "cts", "tsx"];
+pub const VALID_EXTENSIONS: &[&str] =
+    &["js", "mjs", "cjs", "jsx", "ts", "mts", "cts", "tsx", "ets"];
 
 /// Valid file extension.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -123,6 +126,8 @@ pub enum FileExtension {
     Cts,
     /// `.tsx` file extension
     Tsx,
+    /// `.ets` file extension (HarmonyOS ArkUI)
+    Ets,
 }
 
 impl FileExtension {
@@ -167,6 +172,7 @@ impl FromStr for FileExtension {
             "mts" => Ok(FileExtension::Mts),
             "cts" => Ok(FileExtension::Cts),
             "tsx" => Ok(FileExtension::Tsx),
+            "ets" => Ok(FileExtension::Ets),
             _ => Err(UnknownExtension::new("Unknown extension.")),
         }
     }
@@ -179,16 +185,17 @@ impl From<FileExtension> for SourceType {
 
         let language = match file_ext {
             Js | Cjs | Mjs | Jsx => Language::JavaScript,
-            Ts | Tsx | Mts | Cts => Language::TypeScript,
+            Ts | Tsx | Mts | Cts | Ets => Language::TypeScript,
         };
 
         let module_kind = match file_ext {
-            Js | Tsx | Ts | Jsx | Mts | Mjs => ModuleKind::Module,
+            Js | Tsx | Ts | Jsx | Mts | Mjs | Ets => ModuleKind::Module,
             Cjs | Cts => ModuleKind::Script,
         };
 
         let variant = match file_ext {
             Jsx | Tsx => LanguageVariant::Jsx,
+            Ets => LanguageVariant::Arkui,
             Js | Mjs | Cjs | Ts | Mts | Cts => LanguageVariant::Standard,
         };
 
@@ -321,6 +328,29 @@ impl SourceType {
         Self::ts().with_jsx(true)
     }
 
+    /// Creates a [`SourceType`] representing an ETS file with ArkUI support.
+    ///
+    /// ## Example
+    /// ```
+    /// # use oxc_span::SourceType;
+    ///
+    /// let ets = SourceType::ets();
+    /// assert!(ets.is_typescript());
+    /// assert!(!ets.is_typescript_definition());
+    /// assert!(ets.is_module());
+    /// assert!(ets.is_arkui());
+    /// ```
+    ///
+    /// [`TypeScript`]: Language::TypeScript
+    /// [`ArkUI`]: LanguageVariant::Arkui
+    pub const fn ets() -> Self {
+        Self {
+            language: Language::TypeScript,
+            module_kind: ModuleKind::Module,
+            variant: LanguageVariant::Arkui,
+        }
+    }
+
     /// Creates a [`SourceType`] representing a [`TypeScript definition`] file.
     ///
     /// ## Example
@@ -390,6 +420,11 @@ impl SourceType {
     /// Note that TSX is considered JSX in this context.
     pub fn is_jsx(self) -> bool {
         self.variant == LanguageVariant::Jsx
+    }
+
+    /// Returns `true` if this source type is using ArkUI (ETS files).
+    pub fn is_arkui(self) -> bool {
+        self.variant == LanguageVariant::Arkui
     }
 
     /// Does this source type implicitly use strict mode semantics?
@@ -497,6 +532,18 @@ impl SourceType {
         self
     }
 
+    /// Mark this [`SourceType`] as using [ArkUI] if `yes` is `true`. No change
+    /// will occur if `yes` is `false`.
+    ///
+    /// [ArkUI]: LanguageVariant::Arkui
+    #[must_use]
+    pub const fn with_arkui(mut self, yes: bool) -> Self {
+        if yes {
+            self.variant = LanguageVariant::Arkui;
+        }
+        self
+    }
+
     /// Converts a file [`Path`] to [`SourceType`].
     ///
     /// ## Examples
@@ -553,7 +600,7 @@ impl SourceType {
             .map(FileExtension::from_str)
         else {
             return Err(UnknownExtension::new(
-                "Please provide a valid file extension: .js, .mjs, .jsx or .cjs for JavaScript, or .ts, .d.ts, .mts, .cts or .tsx for TypeScript",
+                "Please provide a valid file extension: .js, .mjs, .jsx or .cjs for JavaScript, or .ts, .d.ts, .mts, .cts, .tsx or .ets for TypeScript",
             ));
         };
 
@@ -569,7 +616,7 @@ impl SourceType {
     ///
     /// Returns [`UnknownExtension`] if:
     ///   * the file extension is not one of "js", "mjs", "cjs", "jsx", "ts",
-    ///     "mts", "cts", "tsx". See [`VALID_EXTENSIONS`] for the list of valid
+    ///     "mts", "cts", "tsx", "ets". See [`VALID_EXTENSIONS`] for the list of valid
     ///     extensions.
     pub fn from_extension(extension: &str) -> Result<Self, UnknownExtension> {
         match FileExtension::from_str(extension) {
@@ -715,6 +762,23 @@ mod tests {
         assert!(mjs.is_javascript());
         assert!(cjs.is_javascript());
         assert!(jsx.is_jsx());
+    }
+
+    #[test]
+    fn test_ets_from_path() {
+        let ets =
+            SourceType::from_path("foo.ets").expect("foo.ets should be a valid ETS file path.");
+
+        assert!(ets.is_typescript());
+        assert!(!ets.is_typescript_definition());
+        assert!(!ets.is_javascript());
+        assert!(ets.is_arkui());
+        assert!(!ets.is_jsx());
+        assert!(ets.is_module());
+        assert!(!ets.is_script());
+        assert!(ets.is_strict());
+
+        assert_eq!(SourceType::ets(), ets);
     }
 }
 

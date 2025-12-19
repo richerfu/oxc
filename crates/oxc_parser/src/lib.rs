@@ -825,7 +825,8 @@ mod test {
     #[test]
     fn arkui_struct_statement() {
         let allocator = Allocator::default();
-        let source_type = SourceType::default().with_typescript(true);
+        // Use ETS source type for ArkUI
+        let source_type = SourceType::ets();
         let source = "@Component\nstruct MyComponent {\n  @State message: string = 'Hello';\n  build() {\n    Column() {}\n  }\n}";
         let ret = Parser::new(&allocator, source, source_type).parse();
         assert!(ret.errors.is_empty(), "Errors: {:?}", ret.errors);
@@ -839,9 +840,32 @@ mod test {
     }
 
     #[test]
+    fn arkui_component_expression_with_newline() {
+        let allocator = Allocator::default();
+        // Use ETS source type for ArkUI
+        let source_type = SourceType::ets();
+        // Test case where `{` is on a new line after `Column()`
+        let source = "struct MyComponent {\n  build() {\n    Column()\n    {\n      Text('Hello')\n    }\n  }\n}";
+        let ret = Parser::new(&allocator, source, source_type).parse();
+        assert!(ret.errors.is_empty(), "Errors: {:?}", ret.errors);
+    }
+
+    #[test]
+    fn arkui_component_expression_in_method() {
+        let allocator = Allocator::default();
+        // Use ETS source type for ArkUI
+        let source_type = SourceType::ets();
+        // Test case from user's error report
+        let source = "struct MyComponent {\n  build() {\n    Column() {\n      Text(this.lastName + ' ' + this.firstName)\n    }\n  }\n}";
+        let ret = Parser::new(&allocator, source, source_type).parse();
+        assert!(ret.errors.is_empty(), "Errors: {:?}", ret.errors);
+    }
+
+    #[test]
     fn arkui_component_expression() {
         let allocator = Allocator::default();
-        let source_type = SourceType::default().with_typescript(true);
+        // Use ETS source type for ArkUI
+        let source_type = SourceType::ets();
         let source = "Column() { Text('Hello') }";
         let expr = Parser::new(&allocator, source, source_type).parse_expression().unwrap();
         if let Expression::ArkUIComponentExpression(component) = expr {
@@ -854,7 +878,8 @@ mod test {
     #[test]
     fn arkui_component_with_chain() {
         let allocator = Allocator::default();
-        let source_type = SourceType::default().with_typescript(true);
+        // Use ETS source type for ArkUI
+        let source_type = SourceType::ets();
         let source = "Button('Click').onClick(() => {})";
         let expr = Parser::new(&allocator, source, source_type).parse_expression().unwrap();
         // The chain expression should be parsed as a CallExpression wrapping the ArkUIComponentExpression
@@ -862,6 +887,50 @@ mod test {
             // This is expected - the chain creates a CallExpression
         } else {
             panic!("Expected CallExpression with chain");
+        }
+    }
+
+    #[test]
+    fn tsx_should_not_parse_as_arkui() {
+        // Test that TSX code (function calls followed by {) should NOT be parsed as ArkUI
+        // This prevents infinite loops when parsing TSX files
+        let allocator = Allocator::default();
+        let source_type = SourceType::from_path("test.tsx").unwrap();
+        assert!(source_type.is_jsx(), "Source type should be JSX");
+        assert!(!source_type.is_arkui(), "TSX should not be ArkUI");
+
+        // Common TSX pattern: function call followed by block
+        let source = "function Component() { return <div>{value}</div> }";
+        let ret = Parser::new(&allocator, source, source_type).parse();
+        assert!(ret.errors.is_empty(), "Should parse TSX without errors: {:?}", ret.errors);
+        assert!(!ret.panicked, "Should not panic when parsing TSX");
+
+        // Another common pattern: arrow function with block
+        let source2 = "const fn = () => { return <div>Hello</div> }";
+        let ret2 = Parser::new(&allocator, source2, source_type).parse();
+        assert!(
+            ret2.errors.is_empty(),
+            "Should parse TSX arrow function without errors: {:?}",
+            ret2.errors
+        );
+        assert!(!ret2.panicked, "Should not panic when parsing TSX arrow function");
+    }
+
+    #[test]
+    fn ets_should_parse_arkui() {
+        // Test that ETS files can parse ArkUI syntax
+        let allocator = Allocator::default();
+        let source_type = SourceType::from_path("test.ets").unwrap();
+        assert!(source_type.is_arkui(), "ETS source type should be ArkUI");
+        assert!(source_type.is_typescript(), "ETS should be TypeScript");
+
+        // Test ArkUI component expression in ETS
+        let source = "Column() { Text('Hello') }";
+        let expr = Parser::new(&allocator, source, source_type).parse_expression().unwrap();
+        if let Expression::ArkUIComponentExpression(_) = expr {
+            // Expected
+        } else {
+            panic!("ETS should parse ArkUI component expressions");
         }
     }
 }

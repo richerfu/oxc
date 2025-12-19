@@ -158,7 +158,12 @@ impl<'a> ParserImpl<'a> {
     #[inline]
     pub(crate) fn can_insert_semicolon(&self) -> bool {
         let token = self.cur_token();
-        matches!(token.kind(), Kind::Semicolon | Kind::RCurly | Kind::Eof) || token.is_on_new_line()
+        let kind = token.kind();
+        // For ArkUI, allow `{` to continue parsing (it's part of component expression syntax)
+        if self.source_type.is_arkui() && kind == Kind::LCurly {
+            return true;
+        }
+        matches!(kind, Kind::Semicolon | Kind::RCurly | Kind::Eof) || token.is_on_new_line()
     }
 
     /// Cold path for expect failures - separated to improve branch prediction

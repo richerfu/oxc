@@ -1222,7 +1222,7 @@ impl<'a> AstBuilder<'a> {
     /// This node contains an [`ArkUIComponentExpression`] that will be stored in the memory arena.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `callee`: The component name/callee (e.g., `Column`, `Text`, `Button`)
     /// * `type_arguments`: Type arguments for generic components (if supported)
     /// * `arguments`: Arguments passed to the component constructor
@@ -3803,7 +3803,7 @@ impl<'a> AstBuilder<'a> {
     /// This node contains a [`StructStatement`] that will be stored in the memory arena.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `decorators`: Decorators applied to the struct.
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
@@ -3835,7 +3835,7 @@ impl<'a> AstBuilder<'a> {
     /// This node contains a [`StructStatement`] that will be stored in the memory arena.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `decorators`: Decorators applied to the struct.
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
@@ -15244,7 +15244,7 @@ impl<'a> AstBuilder<'a> {
     /// use [`AstBuilder::alloc_struct_statement`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `decorators`: Decorators applied to the struct.
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
@@ -15278,7 +15278,7 @@ impl<'a> AstBuilder<'a> {
     /// If you want a stack-allocated node, use [`AstBuilder::struct_statement`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `decorators`: Decorators applied to the struct.
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
@@ -15308,7 +15308,7 @@ impl<'a> AstBuilder<'a> {
     /// use [`AstBuilder::alloc_struct_statement_with_scope_id`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `decorators`: Decorators applied to the struct.
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
@@ -15344,7 +15344,7 @@ impl<'a> AstBuilder<'a> {
     /// If you want a stack-allocated node, use [`AstBuilder::struct_statement_with_scope_id`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `decorators`: Decorators applied to the struct.
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
@@ -15383,8 +15383,8 @@ impl<'a> AstBuilder<'a> {
     /// use [`AstBuilder::alloc_struct_body`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
-    /// * `body`
+    /// * `span`: Span
+    /// * `body`: Elements within the struct body
     #[inline]
     pub fn struct_body(self, span: Span, body: Vec<'a, StructElement<'a>>) -> StructBody<'a> {
         StructBody { span, body }
@@ -15396,8 +15396,8 @@ impl<'a> AstBuilder<'a> {
     /// If you want a stack-allocated node, use [`AstBuilder::struct_body`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
-    /// * `body`
+    /// * `span`: Span
+    /// * `body`: Elements within the struct body
     #[inline]
     pub fn alloc_struct_body(
         self,
@@ -15413,7 +15413,7 @@ impl<'a> AstBuilder<'a> {
     /// use [`AstBuilder::alloc_ark_ui_component_expression`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `callee`: The component name/callee (e.g., `Column`, `Text`, `Button`)
     /// * `type_arguments`: Type arguments for generic components (if supported)
     /// * `arguments`: Arguments passed to the component constructor
@@ -15448,7 +15448,7 @@ impl<'a> AstBuilder<'a> {
     /// If you want a stack-allocated node, use [`AstBuilder::ark_ui_component_expression`] instead.
     ///
     /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
+    /// * `span`: Span
     /// * `callee`: The component name/callee (e.g., `Column`, `Text`, `Button`)
     /// * `type_arguments`: Type arguments for generic components (if supported)
     /// * `arguments`: Arguments passed to the component constructor

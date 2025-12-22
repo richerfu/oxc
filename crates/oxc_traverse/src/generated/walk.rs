@@ -5836,6 +5836,7 @@ unsafe fn walk_ark_u_i_child<'a, State, Tr: Traverse<'a, State>>(
             walk_ark_u_i_component_expression(traverser, (&mut **node) as *mut _, ctx)
         }
         ArkUIChild::Expression(node) => walk_expression(traverser, (&mut **node) as *mut _, ctx),
+        ArkUIChild::Statement(node) => walk_statement(traverser, (&mut **node) as *mut _, ctx),
     }
     traverser.exit_ark_u_i_child(&mut *node, ctx);
 }

@@ -8104,6 +8104,7 @@ impl<'new_alloc> CloneIn<'new_alloc> for ArkUIChild<'_> {
         match self {
             Self::Component(it) => ArkUIChild::Component(CloneIn::clone_in(it, allocator)),
             Self::Expression(it) => ArkUIChild::Expression(CloneIn::clone_in(it, allocator)),
+            Self::Statement(it) => ArkUIChild::Statement(CloneIn::clone_in(it, allocator)),
         }
     }
 
@@ -8114,6 +8115,9 @@ impl<'new_alloc> CloneIn<'new_alloc> for ArkUIChild<'_> {
             }
             Self::Expression(it) => {
                 ArkUIChild::Expression(CloneIn::clone_in_with_semantic_ids(it, allocator))
+            }
+            Self::Statement(it) => {
+                ArkUIChild::Statement(CloneIn::clone_in_with_semantic_ids(it, allocator))
             }
         }
     }

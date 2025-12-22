@@ -4550,6 +4550,7 @@ pub mod walk_mut {
         match it {
             ArkUIChild::Component(it) => visitor.visit_ark_ui_component_expression(it),
             ArkUIChild::Expression(it) => visitor.visit_expression(it),
+            ArkUIChild::Statement(it) => visitor.visit_statement(it),
         }
     }
 

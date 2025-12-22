@@ -2559,6 +2559,7 @@ impl Gen for ArkUIChild<'_> {
         match self {
             Self::Component(expr) => expr.print_expr(p, Precedence::Comma, ctx),
             Self::Expression(expr) => expr.print_expr(p, Precedence::Comma, ctx),
+            Self::Statement(stmt) => stmt.r#gen(p, ctx),
         }
         p.print_soft_newline();
     }

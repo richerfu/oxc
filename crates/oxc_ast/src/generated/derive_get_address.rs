@@ -821,6 +821,7 @@ impl GetAddress for ArkUIChild<'_> {
         match self {
             Self::Component(it) => GetAddress::address(it),
             Self::Expression(it) => GetAddress::address(it),
+            Self::Statement(it) => GetAddress::address(it),
         }
     }
 }

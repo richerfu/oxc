@@ -171,6 +171,9 @@ pub struct ArkUIComponentExpression<'a> {
 ///   Text('Hello')                    // ArkUIChild::Component
 ///   Button('Click')                  // ArkUIChild::Component
 ///   `Template: ${value}`             // ArkUIChild::Expression
+///   if (condition) {                  // ArkUIChild::Statement
+///     Text('Conditional')
+///   }
 /// }
 /// ```
 #[ast(visit)]
@@ -182,4 +185,6 @@ pub enum ArkUIChild<'a> {
     Component(Box<'a, ArkUIComponentExpression<'a>>) = 0,
     /// A regular expression (for text, template literals, etc.)
     Expression(Box<'a, Expression<'a>>) = 1,
+    /// A statement (for control flow like if, for, etc.)
+    Statement(Box<'a, Statement<'a>>) = 2,
 }

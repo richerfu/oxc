@@ -2225,6 +2225,7 @@ impl GetSpanMut for ArkUIChild<'_> {
         match self {
             Self::Component(it) => GetSpanMut::span_mut(&mut **it),
             Self::Expression(it) => GetSpanMut::span_mut(&mut **it),
+            Self::Statement(it) => GetSpanMut::span_mut(&mut **it),
         }
     }
 }

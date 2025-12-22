@@ -2225,6 +2225,7 @@ impl GetSpan for ArkUIChild<'_> {
         match self {
             Self::Component(it) => GetSpan::span(&**it),
             Self::Expression(it) => GetSpan::span(&**it),
+            Self::Statement(it) => GetSpan::span(&**it),
         }
     }
 }

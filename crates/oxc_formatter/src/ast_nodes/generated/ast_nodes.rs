@@ -9424,7 +9424,12 @@ impl<'a> AstNode<'a, ArkUIChild<'a>> {
                     following_span: self.following_span,
                 }))
             }
-            ArkUIChild::Expression(_s) => {
+            ArkUIChild::Expression(s) => {
+                panic!(
+                    "No kind for current enum variant yet, please see `tasks/ast_tools/src/generators/ast_kind.rs`"
+                )
+            }
+            ArkUIChild::Statement(s) => {
                 panic!(
                     "No kind for current enum variant yet, please see `tasks/ast_tools/src/generators/ast_kind.rs`"
                 )

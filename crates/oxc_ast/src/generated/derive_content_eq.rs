@@ -2561,6 +2561,7 @@ impl ContentEq for ArkUIChild<'_> {
         match (self, other) {
             (Self::Component(a), Self::Component(b)) => a.content_eq(b),
             (Self::Expression(a), Self::Expression(b)) => a.content_eq(b),
+            (Self::Statement(a), Self::Statement(b)) => a.content_eq(b),
             _ => false,
         }
     }

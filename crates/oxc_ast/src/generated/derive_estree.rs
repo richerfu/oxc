@@ -3289,6 +3289,7 @@ impl ESTree for ArkUIChild<'_> {
         match self {
             Self::Component(it) => it.serialize(serializer),
             Self::Expression(it) => it.serialize(serializer),
+            Self::Statement(it) => it.serialize(serializer),
         }
     }
 }

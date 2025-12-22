@@ -552,6 +552,28 @@ impl<'a> ParserImpl<'a> {
 
     /// Parse an ArkUI child element
     fn parse_arkui_child(&mut self) -> ArkUIChild<'a> {
+        // Check for control flow statements first (if, for, while, switch, etc.)
+        // These are commonly used in ArkUI children for conditional rendering
+        match self.cur_kind() {
+            Kind::If
+            | Kind::For
+            | Kind::While
+            | Kind::Do
+            | Kind::Switch
+            | Kind::Try
+            | Kind::With
+            | Kind::Break
+            | Kind::Continue
+            | Kind::Return
+            | Kind::Throw
+            | Kind::Debugger => {
+                // Parse as statement
+                let stmt = self.parse_statement_list_item(StatementContext::StatementList);
+                return ArkUIChild::Statement(self.alloc(stmt));
+            }
+            _ => {}
+        }
+
         // Check if this is another component expression
         if self.cur_kind().is_identifier_or_keyword() {
             let checkpoint = self.checkpoint();

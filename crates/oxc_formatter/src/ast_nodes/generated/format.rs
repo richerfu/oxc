@@ -5786,6 +5786,16 @@ impl<'a> Format<'a> for AstNode<'a, ArkUIChild<'a>> {
                     })
                     .fmt(f);
             }
+            ArkUIChild::Statement(inner) => {
+                allocator
+                    .alloc(AstNode::<Statement> {
+                        inner,
+                        parent,
+                        allocator,
+                        following_span: self.following_span,
+                    })
+                    .fmt(f);
+            }
         }
     }
 }

@@ -159,11 +159,28 @@ impl<'a> ParserImpl<'a> {
     pub(crate) fn can_insert_semicolon(&self) -> bool {
         let token = self.cur_token();
         let kind = token.kind();
-        // For ArkUI, allow `{` to continue parsing (it's part of component expression syntax)
-        if self.source_type.is_arkui() && kind == Kind::LCurly {
+        // Allow ASI at statement boundaries (semicolon, closing brace, EOF)
+        if matches!(kind, Kind::Semicolon | Kind::RCurly | Kind::Eof) {
             return true;
         }
-        matches!(kind, Kind::Semicolon | Kind::RCurly | Kind::Eof) || token.is_on_new_line()
+        // Allow ASI on newline, but not if the current token is a comma, colon, closing bracket/paren,
+        // or opening brace.
+        // This prevents ASI from triggering incorrectly when parsing:
+        // - Object literal property values followed by commas on new lines
+        // - Object literal property names followed by colons on new lines  
+        // - Array elements followed by commas on new lines
+        // - Expressions followed by closing brackets/parens (they're part of the expression)
+        // - Object literals in return statements (e.g., `return { x: 1 }`)
+        // - ArkUI component expressions (e.g., `Column() { ... }`) - the expression parser handles this
+        // In delimited lists (object literals, arrays, etc.), commas are separators
+        // and should be consumed by the list parser, not by ASI.
+        if token.is_on_new_line() {
+            return !matches!(
+                kind,
+                Kind::Comma | Kind::Colon | Kind::RBrack | Kind::RParen | Kind::LCurly
+            );
+        }
+        false
     }
 
     /// Cold path for expect failures - separated to improve branch prediction

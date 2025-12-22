@@ -876,6 +876,16 @@ mod test {
     }
 
     #[test]
+    fn arkui_return_object_literal_with_newlines() {
+        let allocator = Allocator::default();
+        let source_type = SourceType::ets();
+        // Test object literal in return statement with commas on new lines
+        let source = "struct Test {\n  test(): void {\n    return {\n      x: 1,\n      y: 2\n    };\n  }\n}";
+        let ret = Parser::new(&allocator, source, source_type).parse();
+        assert!(ret.errors.is_empty(), "Errors: {:?}", ret.errors);
+    }
+
+    #[test]
     fn arkui_component_with_chain() {
         let allocator = Allocator::default();
         // Use ETS source type for ArkUI

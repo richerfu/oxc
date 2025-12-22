@@ -117,6 +117,38 @@ impl<'a> ParserImpl<'a> {
             diagnostics::cannot_appear_on_class_elements,
         );
 
+        // Check for get/set accessors (similar to class elements)
+        let r#abstract = modifiers.contains(ModifierKind::Abstract);
+        let r#type = if r#abstract {
+            MethodDefinitionType::TSAbstractMethodDefinition
+        } else {
+            MethodDefinitionType::MethodDefinition
+        };
+
+        if self.parse_contextual_modifier(Kind::Get) {
+            return StructElement::MethodDefinition(
+                self.parse_struct_accessor_declaration(
+                    span,
+                    r#type,
+                    MethodDefinitionKind::Get,
+                    &modifiers,
+                    decorators,
+                ),
+            );
+        }
+
+        if self.parse_contextual_modifier(Kind::Set) {
+            return StructElement::MethodDefinition(
+                self.parse_struct_accessor_declaration(
+                    span,
+                    r#type,
+                    MethodDefinitionKind::Set,
+                    &modifiers,
+                    decorators,
+                ),
+            );
+        }
+
         // Check if this is a method definition
         // We need to check if the next token after the identifier is a left parenthesis
         if self.cur_kind().is_identifier_or_keyword() {
@@ -185,6 +217,48 @@ impl<'a> ParserImpl<'a> {
         }
 
         None
+    }
+
+    /// Parse an accessor declaration (get/set) for struct
+    fn parse_struct_accessor_declaration(
+        &mut self,
+        span: u32,
+        r#type: MethodDefinitionType,
+        kind: MethodDefinitionKind,
+        modifiers: &Modifiers<'a>,
+        decorators: Vec<'a, Decorator<'a>>,
+    ) -> Box<'a, MethodDefinition<'a>> {
+        let (name, computed) = self.parse_property_name();
+        let value = self.parse_method(
+            modifiers.contains(ModifierKind::Async),
+            false,
+            FunctionKind::ClassMethod,
+        );
+        let method_definition = self.ast.alloc_method_definition(
+            self.end_span(span),
+            r#type,
+            decorators,
+            name,
+            value,
+            kind,
+            computed,
+            modifiers.contains(ModifierKind::Static),
+            modifiers.contains(ModifierKind::Override),
+            false,
+            modifiers.accessibility(),
+        );
+        match kind {
+            MethodDefinitionKind::Get => self.check_getter(&method_definition.value),
+            MethodDefinitionKind::Set => self.check_setter(&method_definition.value),
+            _ => {}
+        }
+        self.verify_modifiers(
+            modifiers,
+            !(ModifierFlags::ASYNC | ModifierFlags::DECLARE),
+            false,
+            diagnostics::modifier_cannot_be_used_here,
+        );
+        method_definition
     }
 
     /// Parse a property definition for struct

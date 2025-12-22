@@ -76,60 +76,97 @@ impl<'a> FormatWrite<'a> for AstNode<'a, MethodDefinition<'a>> {
     fn write(&self, f: &mut Formatter<'_, 'a>) {
         write!(f, [self.decorators()]);
 
-        if let Some(accessibility) = &self.accessibility {
-            write!(f, [accessibility.as_str(), space()]);
-        }
-        if self.r#static {
-            write!(f, ["static", space()]);
-        }
-        if self.r#type.is_abstract() {
-            write!(f, ["abstract", space()]);
-        }
-        if self.r#override {
-            write!(f, ["override", space()]);
-        }
+        // Group everything after decorators together for get/set methods to prevent
+        // the get/set keyword from being separated from the method name when decorators break
+        let format_method_content = format_with(|f| {
+            if let Some(accessibility) = &self.accessibility {
+                write!(f, [accessibility.as_str(), space()]);
+            }
+            if self.r#static {
+                write!(f, ["static", space()]);
+            }
+            if self.r#type.is_abstract() {
+                write!(f, ["abstract", space()]);
+            }
+            if self.r#override {
+                write!(f, ["override", space()]);
+            }
+            let value = self.value();
+
+            match &self.kind {
+                MethodDefinitionKind::Constructor | MethodDefinitionKind::Method => {
+                    if value.r#async {
+                        write!(f, ["async", space()]);
+                    }
+                    if value.generator {
+                        write!(f, "*");
+                    }
+                    if self.computed {
+                        write!(f, ["[", self.key(), "]"]);
+                    } else {
+                        format_property_key(self.key(), f);
+                    }
+                }
+                MethodDefinitionKind::Get => {
+                    write!(f, ["get", space()]);
+                    if value.r#async {
+                        write!(f, ["async", space()]);
+                    }
+                    if value.generator {
+                        write!(f, "*");
+                    }
+                    if self.computed {
+                        write!(f, ["[", self.key(), "]"]);
+                    } else {
+                        format_property_key(self.key(), f);
+                    }
+                }
+                MethodDefinitionKind::Set => {
+                    write!(f, ["set", space()]);
+                    if value.r#async {
+                        write!(f, ["async", space()]);
+                    }
+                    if value.generator {
+                        write!(f, "*");
+                    }
+                    if self.computed {
+                        write!(f, ["[", self.key(), "]"]);
+                    } else {
+                        format_property_key(self.key(), f);
+                    }
+                }
+            }
+
+            if self.optional {
+                write!(f, "?");
+            }
+
+            format_grouped_parameters_with_return_type_for_method(
+                value.type_parameters(),
+                value.this_param.as_deref(),
+                value.params(),
+                value.return_type(),
+                f,
+            );
+
+            if let Some(body) = &value.body() {
+                write!(f, body);
+            }
+            if self.r#type().is_abstract()
+                || matches!(value.r#type, FunctionType::TSEmptyBodyFunctionExpression)
+            {
+                write!(f, OptionalSemicolon);
+            }
+        });
+
+        // Only group for get/set methods to keep the keyword with the method name
         match &self.kind {
-            MethodDefinitionKind::Constructor | MethodDefinitionKind::Method => {}
-            MethodDefinitionKind::Get => {
-                write!(f, ["get", space()]);
+            MethodDefinitionKind::Get | MethodDefinitionKind::Set => {
+                group(&format_method_content).fmt(f);
             }
-            MethodDefinitionKind::Set => {
-                write!(f, ["set", space()]);
+            _ => {
+                format_method_content.fmt(f);
             }
-        }
-        let value = self.value();
-
-        if value.r#async {
-            write!(f, ["async", space()]);
-        }
-        if value.generator {
-            write!(f, "*");
-        }
-        if self.computed {
-            write!(f, ["[", self.key(), "]"]);
-        } else {
-            format_property_key(self.key(), f);
-        }
-
-        if self.optional {
-            write!(f, "?");
-        }
-
-        format_grouped_parameters_with_return_type_for_method(
-            value.type_parameters(),
-            value.this_param.as_deref(),
-            value.params(),
-            value.return_type(),
-            f,
-        );
-
-        if let Some(body) = &value.body() {
-            write!(f, body);
-        }
-        if self.r#type().is_abstract()
-            || matches!(value.r#type, FunctionType::TSEmptyBodyFunctionExpression)
-        {
-            write!(f, OptionalSemicolon);
         }
     }
 }

@@ -1813,8 +1813,15 @@ impl<'a> FormatWrite<'a> for AstNode<'a, StructStatement<'a>> {
         let type_parameters = self.type_parameters();
         let body = self.body();
 
-        // Format decorators
-        write!(f, decorators);
+        // Decorators are handled differently depending on the parent context
+        // When the struct is exported, the export statement handles decorator formatting
+        // to ensure proper placement relative to the export keyword
+        if !matches!(
+            self.parent,
+            AstNodes::ExportNamedDeclaration(_) | AstNodes::ExportDefaultDeclaration(_)
+        ) {
+            write!(f, decorators);
+        }
 
         write!(f, "struct");
         write!(f, [space(), id]);

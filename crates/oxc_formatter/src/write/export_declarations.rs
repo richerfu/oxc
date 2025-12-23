@@ -68,6 +68,36 @@ fn format_export_keyword_with_class_decorators<'a>(
             f,
             [function.decorators(), hard_line_break(), format_leading_comments, keyword, space()]
         );
+    } else if let AstNodes::StructStatement(struct_stmt) = declaration
+        && !struct_stmt.decorators.is_empty()
+    {
+        // `@Component export default struct MemoItem {}`
+        // decorators are placed before the export keyword
+        if struct_stmt.decorators[0].span.end < span.start {
+            write!(
+                f,
+                [
+                    struct_stmt.decorators(),
+                    hard_line_break(),
+                    format_leading_comments,
+                    keyword,
+                    space()
+                ]
+            );
+        } else {
+            // `export default @Component struct MemoItem {}`
+            // decorators are placed after the export keyword
+            write!(
+                f,
+                [
+                    format_leading_comments,
+                    keyword,
+                    hard_line_break(),
+                    struct_stmt.decorators(),
+                    hard_line_break()
+                ]
+            );
+        }
     } else {
         write!(f, [format_leading_comments, keyword, space()]);
     }

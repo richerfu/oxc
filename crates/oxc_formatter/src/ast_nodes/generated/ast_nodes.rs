@@ -9425,6 +9425,21 @@ impl<'a> AstNode<'a, StructStatement<'a>> {
         })
     }
 
+    #[inline]
+    pub fn declare(&self) -> bool {
+        self.inner.declare
+    }
+
+    #[inline]
+    pub fn is_export(&self) -> bool {
+        self.inner.is_export
+    }
+
+    #[inline]
+    pub fn is_default_export(&self) -> bool {
+        self.inner.is_default_export
+    }
+
     pub fn format_leading_comments(&self, f: &mut Formatter<'_, 'a>) {
         format_leading_comments(self.span()).fmt(f);
     }
@@ -9584,12 +9599,12 @@ impl<'a> AstNode<'a, ArkUIChild<'a>> {
                     following_span: self.following_span,
                 }))
             }
-            ArkUIChild::Expression(_s) => {
+            ArkUIChild::Expression(_) => {
                 panic!(
                     "No kind for current enum variant yet, please see `tasks/ast_tools/src/generators/ast_kind.rs`"
                 )
             }
-            ArkUIChild::Statement(_s) => {
+            ArkUIChild::Statement(_) => {
                 panic!(
                     "No kind for current enum variant yet, please see `tasks/ast_tools/src/generators/ast_kind.rs`"
                 )

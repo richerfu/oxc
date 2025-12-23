@@ -458,7 +458,10 @@ fn generate_enum_impls(enum_def: &EnumDef, schema: &Schema) -> TokenStream {
 
         let inner_expr = if is_box { quote! { s.as_ref() } } else { quote! { s } };
 
-        let implementation = if has_kind(field_type, schema) {
+        let has_kind = has_kind(field_type, schema);
+        let pat = if has_kind { quote!(s) } else { quote!(_) };
+
+        let implementation = if has_kind {
             quote! {
                 AstNodes::#node_type_ident(self.allocator.alloc(AstNode {
                     inner: #inner_expr,
@@ -473,7 +476,7 @@ fn generate_enum_impls(enum_def: &EnumDef, schema: &Schema) -> TokenStream {
                 panic!("No kind for current enum variant yet, please see `tasks/ast_tools/src/generators/ast_kind.rs`")
             }
         };
-        quote! { #enum_ident::#variant_name(s) => { #implementation }, }
+        quote! { #enum_ident::#variant_name(#pat) => { #implementation }, }
     });
 
     let inherits_match_arms = enum_def.inherits_types(schema).map(|inherited_type| {

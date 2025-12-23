@@ -3295,6 +3295,9 @@ impl ESTree for StructStatement<'_> {
         state.serialize_field("id", &self.id);
         state.serialize_ts_field("typeParameters", &self.type_parameters);
         state.serialize_field("body", &self.body);
+        state.serialize_ts_field("declare", &self.declare);
+        state.serialize_field("isExport", &self.is_export);
+        state.serialize_field("isDefaultExport", &self.is_default_export);
         state.serialize_span(self.span);
         state.end();
     }

@@ -16349,6 +16349,10 @@ pub(crate) const OFFSET_STRUCT_STATEMENT_ID: usize = offset_of!(StructStatement,
 pub(crate) const OFFSET_STRUCT_STATEMENT_TYPE_PARAMETERS: usize =
     offset_of!(StructStatement, type_parameters);
 pub(crate) const OFFSET_STRUCT_STATEMENT_BODY: usize = offset_of!(StructStatement, body);
+pub(crate) const OFFSET_STRUCT_STATEMENT_DECLARE: usize = offset_of!(StructStatement, declare);
+pub(crate) const OFFSET_STRUCT_STATEMENT_IS_EXPORT: usize = offset_of!(StructStatement, is_export);
+pub(crate) const OFFSET_STRUCT_STATEMENT_IS_DEFAULT_EXPORT: usize =
+    offset_of!(StructStatement, is_default_export);
 pub(crate) const OFFSET_STRUCT_STATEMENT_SCOPE_ID: usize = offset_of!(StructStatement, scope_id);
 
 #[repr(transparent)]
@@ -16385,6 +16389,23 @@ impl<'a, 't> StructStatementWithoutDecorators<'a, 't> {
         unsafe {
             &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_BODY)
                 as *const Box<'a, StructBody<'a>>)
+        }
+    }
+
+    #[inline]
+    pub fn declare(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_DECLARE) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_export(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_EXPORT) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_default_export(self) -> &'t bool {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_DEFAULT_EXPORT) as *const bool)
         }
     }
 
@@ -16442,6 +16463,23 @@ impl<'a, 't> StructStatementWithoutId<'a, 't> {
     }
 
     #[inline]
+    pub fn declare(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_DECLARE) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_export(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_EXPORT) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_default_export(self) -> &'t bool {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_DEFAULT_EXPORT) as *const bool)
+        }
+    }
+
+    #[inline]
     pub fn scope_id(self) -> &'t Cell<Option<ScopeId>> {
         unsafe {
             &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_SCOPE_ID)
@@ -16495,6 +16533,23 @@ impl<'a, 't> StructStatementWithoutTypeParameters<'a, 't> {
     }
 
     #[inline]
+    pub fn declare(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_DECLARE) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_export(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_EXPORT) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_default_export(self) -> &'t bool {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_DEFAULT_EXPORT) as *const bool)
+        }
+    }
+
+    #[inline]
     pub fn scope_id(self) -> &'t Cell<Option<ScopeId>> {
         unsafe {
             &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_SCOPE_ID)
@@ -16544,6 +16599,23 @@ impl<'a, 't> StructStatementWithoutBody<'a, 't> {
         unsafe {
             &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_TYPE_PARAMETERS)
                 as *const Option<Box<'a, TSTypeParameterDeclaration<'a>>>)
+        }
+    }
+
+    #[inline]
+    pub fn declare(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_DECLARE) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_export(self) -> &'t bool {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_EXPORT) as *const bool) }
+    }
+
+    #[inline]
+    pub fn is_default_export(self) -> &'t bool {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_STRUCT_STATEMENT_IS_DEFAULT_EXPORT) as *const bool)
         }
     }
 

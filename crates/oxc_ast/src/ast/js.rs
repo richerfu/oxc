@@ -2511,7 +2511,7 @@ pub struct ImportDeclaration<'a> {
 pub struct LazyImportDeclaration<'a> {
     pub span: Span,
     /// Import specifiers (e.g., `{ c }`)
-    #[estree(via = ImportDeclarationSpecifiers)]
+    #[estree(via = LazyImportDeclarationSpecifiers)]
     pub specifiers: Option<Vec<'a, ImportDeclarationSpecifier<'a>>>,
     pub source: StringLiteral<'a>,
     /// Some(vec![]) for empty assertion

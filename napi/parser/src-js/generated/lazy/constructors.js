@@ -11969,6 +11969,21 @@ export class StructStatement {
     return constructBoxStructBody(internal.pos + 72, internal.ast);
   }
 
+  get declare() {
+    const internal = this.#internal;
+    return constructBool(internal.pos + 84, internal.ast);
+  }
+
+  get isExport() {
+    const internal = this.#internal;
+    return constructBool(internal.pos + 85, internal.ast);
+  }
+
+  get isDefaultExport() {
+    const internal = this.#internal;
+    return constructBool(internal.pos + 86, internal.ast);
+  }
+
   toJSON() {
     return {
       type: "StructStatement",
@@ -11978,6 +11993,9 @@ export class StructStatement {
       id: this.id,
       typeParameters: this.typeParameters,
       body: this.body,
+      declare: this.declare,
+      isExport: this.isExport,
+      isDefaultExport: this.isDefaultExport,
     };
   }
 

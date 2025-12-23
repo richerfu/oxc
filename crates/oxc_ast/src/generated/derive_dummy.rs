@@ -2951,6 +2951,9 @@ impl<'a> Dummy<'a> for StructStatement<'a> {
             id: Dummy::dummy(allocator),
             type_parameters: Dummy::dummy(allocator),
             body: Dummy::dummy(allocator),
+            declare: Dummy::dummy(allocator),
+            is_export: Dummy::dummy(allocator),
+            is_default_export: Dummy::dummy(allocator),
             scope_id: Dummy::dummy(allocator),
         }
     }

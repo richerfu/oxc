@@ -2121,10 +2121,9 @@ function deserializeLazyImportDeclaration(pos) {
       start: deserializeU32(pos),
       end: deserializeU32(pos + 4),
     },
-    specifiers = deserializeOptionVecImportDeclarationSpecifier(pos + 8);
-  specifiers === null && (specifiers = []);
-  let withClause = deserializeOptionBoxWithClause(pos + 80);
-  node.specifiers = specifiers;
+    specifiers = deserializeOptionVecImportDeclarationSpecifier(pos + 8),
+    withClause = deserializeOptionBoxWithClause(pos + 80);
+  node.specifiers = specifiers === null ? null : specifiers;
   node.source = deserializeStringLiteral(pos + 32);
   node.attributes = withClause === null ? [] : withClause.attributes;
   return node;
@@ -4285,14 +4284,18 @@ function deserializeJSDocUnknownType(pos) {
 }
 
 function deserializeStructStatement(pos) {
-  let node = {
-    type: "StructStatement",
-    decorators: null,
-    id: null,
-    body: null,
-    start: deserializeU32(pos),
-    end: deserializeU32(pos + 4),
-  };
+  let start = deserializeU32(pos),
+    end = deserializeU32(pos + 4),
+    node = {
+      type: "StructStatement",
+      decorators: null,
+      id: null,
+      body: null,
+      isExport: deserializeBool(pos + 85),
+      isDefaultExport: deserializeBool(pos + 86),
+      start,
+      end,
+    };
   node.decorators = deserializeVecDecorator(pos + 8);
   node.id = deserializeBindingIdentifier(pos + 32);
   node.body = deserializeBoxStructBody(pos + 72);

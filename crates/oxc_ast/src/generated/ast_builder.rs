@@ -3881,6 +3881,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     #[inline]
     pub fn statement_struct<T1, T2>(
         self,
@@ -3889,6 +3892,9 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
     ) -> Statement<'a>
     where
         T1: IntoIn<'a, Option<Box<'a, TSTypeParameterDeclaration<'a>>>>,
@@ -3900,6 +3906,9 @@ impl<'a> AstBuilder<'a> {
             id,
             type_parameters,
             body,
+            declare,
+            is_export,
+            is_default_export,
         ))
     }
 
@@ -3913,6 +3922,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     /// * `scope_id`: Id of the scope created by the [`StructStatement`], including type parameters and
     #[inline]
     pub fn statement_struct_with_scope_id<T1, T2>(
@@ -3922,6 +3934,9 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
         scope_id: ScopeId,
     ) -> Statement<'a>
     where
@@ -3934,6 +3949,9 @@ impl<'a> AstBuilder<'a> {
             id,
             type_parameters,
             body,
+            declare,
+            is_export,
+            is_default_export,
             scope_id,
         ))
     }
@@ -8662,6 +8680,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     #[inline]
     pub fn export_default_declaration_kind_struct_statement<T1, T2>(
         self,
@@ -8670,6 +8691,9 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
     ) -> ExportDefaultDeclarationKind<'a>
     where
         T1: IntoIn<'a, Option<Box<'a, TSTypeParameterDeclaration<'a>>>>,
@@ -8681,6 +8705,9 @@ impl<'a> AstBuilder<'a> {
             id,
             type_parameters,
             body,
+            declare,
+            is_export,
+            is_default_export,
         ))
     }
 
@@ -8694,6 +8721,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     /// * `scope_id`: Id of the scope created by the [`StructStatement`], including type parameters and
     #[inline]
     pub fn export_default_declaration_kind_struct_statement_with_scope_id<T1, T2>(
@@ -8703,6 +8733,9 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
         scope_id: ScopeId,
     ) -> ExportDefaultDeclarationKind<'a>
     where
@@ -8715,6 +8748,9 @@ impl<'a> AstBuilder<'a> {
             id,
             type_parameters,
             body,
+            declare,
+            is_export,
+            is_default_export,
             scope_id,
         ))
     }
@@ -15506,6 +15542,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     #[inline]
     pub fn struct_statement<T1, T2>(
         self,
@@ -15514,6 +15553,9 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
     ) -> StructStatement<'a>
     where
         T1: IntoIn<'a, Option<Box<'a, TSTypeParameterDeclaration<'a>>>>,
@@ -15525,6 +15567,9 @@ impl<'a> AstBuilder<'a> {
             id,
             type_parameters: type_parameters.into_in(self.allocator),
             body: body.into_in(self.allocator),
+            declare,
+            is_export,
+            is_default_export,
             scope_id: Default::default(),
         }
     }
@@ -15540,6 +15585,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     #[inline]
     pub fn alloc_struct_statement<T1, T2>(
         self,
@@ -15548,13 +15596,25 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
     ) -> Box<'a, StructStatement<'a>>
     where
         T1: IntoIn<'a, Option<Box<'a, TSTypeParameterDeclaration<'a>>>>,
         T2: IntoIn<'a, Box<'a, StructBody<'a>>>,
     {
         Box::new_in(
-            self.struct_statement(span, decorators, id, type_parameters, body),
+            self.struct_statement(
+                span,
+                decorators,
+                id,
+                type_parameters,
+                body,
+                declare,
+                is_export,
+                is_default_export,
+            ),
             self.allocator,
         )
     }
@@ -15570,6 +15630,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     /// * `scope_id`: Id of the scope created by the [`StructStatement`], including type parameters and
     #[inline]
     pub fn struct_statement_with_scope_id<T1, T2>(
@@ -15579,6 +15642,9 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
         scope_id: ScopeId,
     ) -> StructStatement<'a>
     where
@@ -15591,6 +15657,9 @@ impl<'a> AstBuilder<'a> {
             id,
             type_parameters: type_parameters.into_in(self.allocator),
             body: body.into_in(self.allocator),
+            declare,
+            is_export,
+            is_default_export,
             scope_id: Cell::new(Some(scope_id)),
         }
     }
@@ -15606,6 +15675,9 @@ impl<'a> AstBuilder<'a> {
     /// * `id`: Struct identifier, AKA the name
     /// * `type_parameters`: Type parameters (for generic structs, if supported)
     /// * `body`: Struct body containing properties and methods
+    /// * `declare`: Whether this struct is marked with `declare`.
+    /// * `is_export`: Whether this struct is exported (`export struct ...`).
+    /// * `is_default_export`: Whether this struct is exported as default (`export default struct ...`).
     /// * `scope_id`: Id of the scope created by the [`StructStatement`], including type parameters and
     #[inline]
     pub fn alloc_struct_statement_with_scope_id<T1, T2>(
@@ -15615,6 +15687,9 @@ impl<'a> AstBuilder<'a> {
         id: BindingIdentifier<'a>,
         type_parameters: T1,
         body: T2,
+        declare: bool,
+        is_export: bool,
+        is_default_export: bool,
         scope_id: ScopeId,
     ) -> Box<'a, StructStatement<'a>>
     where
@@ -15628,6 +15703,9 @@ impl<'a> AstBuilder<'a> {
                 id,
                 type_parameters,
                 body,
+                declare,
+                is_export,
+                is_default_export,
                 scope_id,
             ),
             self.allocator,

@@ -1350,7 +1350,6 @@ impl GenExpr for Expression<'_> {
             Self::ChainExpression(expr) => expr.print_expr(p, precedence, ctx),
             // Private field
             Self::PrivateFieldExpression(expr) => expr.print_expr(p, precedence, ctx),
-            Self::LeadingDotMemberExpression(expr) => expr.print_expr(p, precedence, ctx),
             Self::PrivateInExpression(expr) => expr.print_expr(p, precedence, ctx),
             // Parenthesized
             Self::ParenthesizedExpression(e) => e.print_expr(p, precedence, ctx),

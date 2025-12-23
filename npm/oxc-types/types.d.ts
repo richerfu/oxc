@@ -862,7 +862,7 @@ export interface ImportDeclaration extends Span {
 
 export interface LazyImportDeclaration extends Span {
   type: "LazyImportDeclaration";
-  specifiers: Array<ImportDeclarationSpecifier>;
+  specifiers: Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier> | null;
   source: StringLiteral;
   attributes: Array<ImportAttribute>;
   parent?: Node;
@@ -1713,6 +1713,9 @@ export interface StructStatement extends Span {
   id: BindingIdentifier;
   typeParameters?: TSTypeParameterDeclaration | null;
   body: StructBody;
+  declare?: boolean;
+  isExport: boolean;
+  isDefaultExport: boolean;
   parent?: Node;
 }
 

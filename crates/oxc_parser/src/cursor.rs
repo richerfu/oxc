@@ -175,10 +175,11 @@ impl<'a> ParserImpl<'a> {
         // In delimited lists (object literals, arrays, etc.), commas are separators
         // and should be consumed by the list parser, not by ASI.
         if token.is_on_new_line() {
-            return !matches!(
-                kind,
-                Kind::Comma | Kind::Colon | Kind::RBrack | Kind::RParen | Kind::LCurly
-            );
+            if self.source_type.is_arkui() && kind == Kind::LCurly {
+                // In ArkUI, `Column() { ... }` can span lines, so avoid inserting ASI before `{`.
+                return false;
+            }
+            return !matches!(kind, Kind::Comma | Kind::Colon | Kind::RBrack | Kind::RParen);
         }
         false
     }

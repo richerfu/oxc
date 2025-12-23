@@ -8164,6 +8164,9 @@ impl<'new_alloc> CloneIn<'new_alloc> for StructStatement<'_> {
             id: CloneIn::clone_in(&self.id, allocator),
             type_parameters: CloneIn::clone_in(&self.type_parameters, allocator),
             body: CloneIn::clone_in(&self.body, allocator),
+            declare: CloneIn::clone_in(&self.declare, allocator),
+            is_export: CloneIn::clone_in(&self.is_export, allocator),
+            is_default_export: CloneIn::clone_in(&self.is_default_export, allocator),
             scope_id: Default::default(),
         }
     }
@@ -8175,6 +8178,12 @@ impl<'new_alloc> CloneIn<'new_alloc> for StructStatement<'_> {
             id: CloneIn::clone_in_with_semantic_ids(&self.id, allocator),
             type_parameters: CloneIn::clone_in_with_semantic_ids(&self.type_parameters, allocator),
             body: CloneIn::clone_in_with_semantic_ids(&self.body, allocator),
+            declare: CloneIn::clone_in_with_semantic_ids(&self.declare, allocator),
+            is_export: CloneIn::clone_in_with_semantic_ids(&self.is_export, allocator),
+            is_default_export: CloneIn::clone_in_with_semantic_ids(
+                &self.is_default_export,
+                allocator,
+            ),
             scope_id: CloneIn::clone_in_with_semantic_ids(&self.scope_id, allocator),
         }
     }

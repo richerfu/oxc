@@ -292,7 +292,7 @@ pub static STRUCTS: phf::Map<&'static str, StructDetails> = ::phf::Map {
         ("TSModuleDeclaration", StructDetails { field_order: Some(&[0, 1, 2, 4, 5, 3]) }),
         ("EmptyStatement", StructDetails { field_order: None }),
         ("WhileStatement", StructDetails { field_order: None }),
-        ("StructStatement", StructDetails { field_order: None }),
+        ("StructStatement", StructDetails { field_order: Some(&[0, 1, 2, 3, 4, 6, 7, 8, 5]) }),
         ("ArrayExpression", StructDetails { field_order: None }),
         ("TSInterfaceBody", StructDetails { field_order: None }),
         ("TSRestType", StructDetails { field_order: None }),

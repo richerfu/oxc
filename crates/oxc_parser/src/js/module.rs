@@ -538,8 +538,10 @@ impl<'a> ParserImpl<'a> {
                 let modifiers = self.parse_modifiers(false, false);
                 // Save decorators before passing to parse_struct_declaration
                 let export_decorators = decorators;
-                let struct_decl =
+                let mut struct_decl =
                     self.parse_struct_declaration(struct_span, &modifiers, export_decorators);
+                struct_decl.is_export = true;
+                struct_decl.is_default_export = false;
                 // Since StructStatement is not a Declaration, we cannot put it in ExportNamedDeclaration.
                 // Instead, we create a Statement and wrap it appropriately.
                 // For now, we'll create an export without a declaration (similar to export { ... })
@@ -574,8 +576,10 @@ impl<'a> ParserImpl<'a> {
                 let struct_span = self.start_span();
                 let modifiers = self.parse_modifiers(false, false);
                 let export_decorators = decorators;
-                let struct_decl =
+                let mut struct_decl =
                     self.parse_struct_declaration(struct_span, &modifiers, export_decorators);
+                struct_decl.is_export = true;
+                struct_decl.is_default_export = false;
                 let export_named_decl = self.ast.alloc_export_named_declaration(
                     self.end_span(span),
                     self.ast.vec(), // decorators already on struct
@@ -876,7 +880,9 @@ impl<'a> ParserImpl<'a> {
         // export default struct ... (ArkUI)
         if kind == Kind::Struct && self.source_type.is_arkui() {
             let modifiers = Modifiers::empty();
-            let struct_decl = self.parse_struct_declaration(decl_span, &modifiers, decorators);
+            let mut struct_decl = self.parse_struct_declaration(decl_span, &modifiers, decorators);
+            struct_decl.is_export = true;
+            struct_decl.is_default_export = true;
             return ExportDefaultDeclarationKind::StructStatement(struct_decl);
         }
 
@@ -1490,11 +1496,7 @@ export declare struct Foo {
         let source_type = SourceType::default().with_typescript(true).with_arkui(true);
         let allocator = Allocator::default();
         let ret = Parser::new(&allocator, src, source_type).parse();
-        assert!(
-            ret.errors.is_empty(),
-            "Unexpected errors: {:?}",
-            ret.errors
-        );
+        assert!(ret.errors.is_empty(), "Unexpected errors: {:?}", ret.errors);
         assert!(matches!(ret.program.body.first(), Some(Statement::StructStatement(_))));
     }
 

@@ -2843,10 +2843,9 @@ function deserializeLazyImportDeclaration(pos) {
       range: [start, end],
       parent,
     }),
-    specifiers = deserializeOptionVecImportDeclarationSpecifier(pos + 8);
-  specifiers === null && (specifiers = []);
-  let withClause = deserializeOptionBoxWithClause(pos + 80);
-  node.specifiers = specifiers;
+    specifiers = deserializeOptionVecImportDeclarationSpecifier(pos + 8),
+    withClause = deserializeOptionBoxWithClause(pos + 80);
+  node.specifiers = specifiers === null ? null : specifiers;
   node.source = deserializeStringLiteral(pos + 32);
   node.attributes = withClause === null ? [] : withClause.attributes;
   parent = previousParent;
@@ -5752,6 +5751,9 @@ function deserializeStructStatement(pos) {
       id: null,
       typeParameters: null,
       body: null,
+      declare: deserializeBool(pos + 84),
+      isExport: deserializeBool(pos + 85),
+      isDefaultExport: deserializeBool(pos + 86),
       start,
       end,
       range: [start, end],

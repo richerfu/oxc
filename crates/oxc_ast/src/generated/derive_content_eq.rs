@@ -2587,6 +2587,9 @@ impl ContentEq for StructStatement<'_> {
             && ContentEq::content_eq(&self.id, &other.id)
             && ContentEq::content_eq(&self.type_parameters, &other.type_parameters)
             && ContentEq::content_eq(&self.body, &other.body)
+            && ContentEq::content_eq(&self.declare, &other.declare)
+            && ContentEq::content_eq(&self.is_export, &other.is_export)
+            && ContentEq::content_eq(&self.is_default_export, &other.is_default_export)
     }
 }
 

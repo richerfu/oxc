@@ -819,25 +819,30 @@ impl<'a> ParserImpl<'a> {
             // Struct span.start starts before decorators.
             return self.parse_struct_statement(span, stmt_ctx, &modifiers, decorators);
         }
+        // Check for async function: either async was parsed as a modifier, or we're at Async token
+        let r#async = modifiers.contains(ModifierKind::Async)
+            || (self.at(Kind::Async) && {
+                let token = self.lexer.peek_token();
+                token.kind() == Kind::Function && !token.is_on_new_line()
+            });
+
+        // If async wasn't in modifiers but we detected it, consume the Async token
+        if r#async && !modifiers.contains(ModifierKind::Async) {
+            self.bump_any(); // consume `async`
+        }
+
         if self.at(Kind::Function) {
             // Function declarations with decorators are only allowed in ArkUI mode
             // (e.g., ArkUI @Builder)
             if self.source_type.is_arkui() {
-                return self.parse_function_declaration(
-                    span, /* async */ false, stmt_ctx, decorators,
-                );
+                return self.parse_function_declaration(span, r#async, stmt_ctx, decorators);
             } else {
                 // In non-ArkUI mode, decorators on functions are not allowed
                 for decorator in &decorators {
                     self.error(diagnostics::decorators_are_not_valid_here(decorator.span));
                 }
                 // Continue parsing the function without decorators
-                return self.parse_function_declaration(
-                    span,
-                    /* async */ false,
-                    stmt_ctx,
-                    self.ast.vec(),
-                );
+                return self.parse_function_declaration(span, r#async, stmt_ctx, self.ast.vec());
             }
         }
         self.unexpected()

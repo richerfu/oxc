@@ -230,7 +230,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ObjectProperty<'a>> {
             // (value is LeadingDotMemberExpression or CallExpression/StaticMemberExpression chain starting with LeadingDotMemberExpression)
             let value = self.value();
             let is_leading_dot_expression = is_arkui_leading_dot_expression(value);
-            
+
             if is_leading_dot_expression {
                 // For ArkUI leading-dot expressions, skip key and ":", just format the value
                 write!(f, value);
@@ -1911,11 +1911,22 @@ impl<'a> Format<'a> for (&AstNode<'a, StructElement<'a>>, Option<&AstNode<'a, St
 }
 
 /// Helper to format ArkUI chain expressions (like `.onClick(...)`) without the object
-struct FormatArkUIChainExpression<'a, 'b>(&'b AstNode<'a, CallExpression<'a>>);
+/// The `prev_end` parameter specifies the end position of the previous chain/component,
+/// used to limit comment search to only the gap between chains.
+struct FormatArkUIChainExpression<'a, 'b> {
+    chain: &'b AstNode<'a, CallExpression<'a>>,
+    prev_end: u32,
+}
+
+impl<'a, 'b> FormatArkUIChainExpression<'a, 'b> {
+    fn new(chain: &'b AstNode<'a, CallExpression<'a>>, prev_end: u32) -> Self {
+        Self { chain, prev_end }
+    }
+}
 
 impl<'a> Format<'a> for FormatArkUIChainExpression<'a, '_> {
     fn fmt(&self, f: &mut Formatter<'_, 'a>) {
-        let chain_expr = self.0;
+        let chain_expr = self.chain;
         let callee = chain_expr.callee();
 
         // Format the member access part (e.g., `.onClick`) and call arguments
@@ -1926,31 +1937,41 @@ impl<'a> Format<'a> for FormatArkUIChainExpression<'a, '_> {
                 // Format the property name directly as text
                 let property_text = text_without_whitespace(member.property.name.as_str());
 
+                // Only get comments between the previous chain's end and this chain's callee start
+                // (the dot position). This prevents picking up comments from unrelated parts.
+                // Note: We use member.span.start which is typically at the object start, but since
+                // the object is the previous chain, we need to find where the dot is.
+                // The member.property.span.start is the identifier start, which is after the dot.
+                // To be safe, we use the minimum of prev_end+1 and property.span.start-1 as the search end.
+                // This ensures we only pick up comments that are truly between chains.
+                let search_end = if member.property.span.start > self.prev_end {
+                    member.property.span.start
+                } else {
+                    // Fallback: no gap for comments
+                    self.prev_end
+                };
+
+                let leading_comments = if search_end > self.prev_end {
+                    f.context().comments().comments_in_range(self.prev_end, search_end)
+                } else {
+                    &[]
+                };
+
                 // Use line_suffix_boundary to allow breaking before the dot
                 write!(
                     f,
                     [
                         line_suffix_boundary(),
-                        FormatLeadingComments::Comments(
-                            f.context().comments().comments_before(member.property.span.start)
-                        ),
+                        FormatLeadingComments::Comments(leading_comments),
                         member.optional.then_some("?"),
                         ".",
                         property_text
                     ]
                 );
-                // Format trailing comments before the call arguments
-                // Check if we need to format trailing comments by checking the parent
-                if !matches!(
-                    chain_expr.parent,
-                    AstNodes::CallExpression(call) if call.type_arguments.is_none()
-                ) {
-                    // Format trailing comments manually
-                    let comments = f.context().comments().comments_after(member.span.end);
-                    if !comments.is_empty() {
-                        write!(f, [space(), FormatTrailingComments::Comments(comments)]);
-                    }
-                }
+                // Note: Skip trailing comments between property and arguments for chain expressions
+                // to avoid incorrectly picking up comments from other parts of the code.
+                // Chain expression arguments immediately follow the property name.
+
                 // Format call arguments
                 write!(
                     f,
@@ -2017,6 +2038,80 @@ fn should_break_arkui_chain(
     false
 }
 
+/// Find the span of the children block content for an ArkUI component.
+/// Returns a Span from after `{` to before `}` if a children block exists, or None if there's no block.
+///
+/// The structure of an ArkUI component is:
+/// ```arkui
+/// Component() {  // <- arguments, then children start
+///   Child()      // <- children content
+/// }              // <- children end
+/// .method()      // <- chain expressions
+/// ```
+fn find_arkui_children_block_span(
+    arkui_expr: &ArkUIComponentExpression<'_>,
+    source_text: &str,
+) -> Option<oxc_span::Span> {
+    // Children block comes AFTER arguments but BEFORE chain expressions
+    // Find where to start searching - after arguments close paren
+    let search_start = if let Some(last_arg) = arkui_expr.arguments.last() {
+        last_arg.span().end
+    } else if let Some(type_args) = &arkui_expr.type_arguments {
+        type_args.span.end
+    } else {
+        arkui_expr.callee.span().end
+    };
+
+    // Find where to stop searching - before chain expressions or at component span end
+    let search_end = if let Some(first_chain) = arkui_expr.chain_expressions.first() {
+        first_chain.span.start
+    } else {
+        arkui_expr.span.end
+    };
+
+    // Safety check: ensure valid range
+    if search_start >= search_end {
+        return None;
+    }
+
+    // Search for `{` and `}` in source text to get the block span
+    let search_range = &source_text[search_start as usize..search_end as usize];
+    let mut block_start: Option<u32> = None;
+    let mut block_end: Option<u32> = None;
+
+    for (i, byte) in search_range.bytes().enumerate() {
+        let pos = search_start + i as u32;
+        match byte {
+            b'{' if block_start.is_none() => {
+                // Found the opening brace - content starts after it
+                block_start = Some(pos + 1);
+            }
+            b'}' if block_start.is_some() => {
+                // Found the closing brace - content ends before it
+                block_end = Some(pos);
+                break;
+            }
+            b' ' | b'\t' | b'\n' | b'\r' | b')' if block_start.is_none() => {
+                // Skip whitespace and closing paren before finding `{`
+                continue;
+            }
+            _ if block_start.is_none() => {
+                // Some other character before `{` - not a children block
+                return None;
+            }
+            _ => {
+                // Inside the block, continue looking for `}`
+                continue;
+            }
+        }
+    }
+
+    match (block_start, block_end) {
+        (Some(start), Some(end)) => Some(oxc_span::Span::new(start, end)),
+        _ => None,
+    }
+}
+
 impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
     fn write(&self, f: &mut Formatter<'_, 'a>) {
         let callee = self.callee();
@@ -2037,9 +2132,19 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
         // Note: arguments already formats itself with parentheses, so we don't add extra ones
         write!(f, [arguments]);
 
-        // Format children if present
+        // Format children block
+        // We need to check source text to determine if there's a `{...}` block,
+        // because children Vec can be empty even when there's a block with only comments
         if !children.as_ref().is_empty() {
             write!(f, [space(), "{", block_indent(&children), "}"]);
+        } else if let Some(block_span) =
+            find_arkui_children_block_span(self.as_ref(), f.source_text().as_ref())
+        {
+            // Empty children block - handle dangling comments inside
+            write!(
+                f,
+                [space(), "{", format_dangling_comments(block_span).with_block_indent(), "}"]
+            );
         }
 
         // Format chain expressions
@@ -2049,16 +2154,39 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
             let should_break = should_break_arkui_chain(chain_expressions.as_ref(), f);
             let has_children = !children.as_ref().is_empty();
 
+            // Calculate the starting position for the first chain expression's comment search
+            // This should be after the children block or arguments
+            let initial_prev_end = if !children.as_ref().is_empty() {
+                // After children block - find the end of last child
+                children.as_ref().last().map(|c| c.span().end).unwrap_or(self.span.start)
+            } else if let Some(block_span) =
+                find_arkui_children_block_span(self.as_ref(), f.source_text().as_ref())
+            {
+                // Empty children block - use block span end
+                block_span.end
+            } else if let Some(last_arg) = self.arguments.last() {
+                // No children block - use end of arguments
+                last_arg.span().end
+            } else {
+                // No arguments - use callee end or span start
+                self.callee.span().end
+            };
+
+            // Collect chain refs for iteration
+            let chain_refs: std::vec::Vec<_> = chain_expressions.iter().collect();
+
             if should_break {
                 // Force multi-line format when chain should break
                 // If component has children ({}), chain expressions align with component (no indent)
                 // If component has no children, chain expressions should be indented
                 let format_chains_multi_line = format_with(|f| {
-                    for (i, chain_expr_node) in chain_expressions.iter().enumerate() {
+                    let mut prev_end = initial_prev_end;
+                    for (i, chain_expr_node) in chain_refs.iter().enumerate() {
                         if i > 0 {
                             write!(f, [hard_line_break()]);
                         }
-                        write!(f, [FormatArkUIChainExpression(chain_expr_node)]);
+                        write!(f, [FormatArkUIChainExpression::new(chain_expr_node, prev_end)]);
+                        prev_end = chain_expr_node.span.end;
                     }
                 });
                 // Add a line break before the first chain expression
@@ -2073,8 +2201,10 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
                 // Format all chain expressions, allowing breaking when needed
                 // In single-line format, chain expressions should be directly connected (no space)
                 let format_chains_single_line = format_with(|f| {
-                    for chain_expr_node in chain_expressions.iter() {
-                        write!(f, [FormatArkUIChainExpression(chain_expr_node)]);
+                    let mut prev_end = initial_prev_end;
+                    for chain_expr_node in chain_refs.iter() {
+                        write!(f, [FormatArkUIChainExpression::new(chain_expr_node, prev_end)]);
+                        prev_end = chain_expr_node.span.end;
                     }
                 });
 
@@ -2082,11 +2212,13 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ArkUIComponentExpression<'a>> {
                 // If component has children, no indentation (aligned with component)
                 // If component has no children, add indentation
                 let format_chains_multi_line = format_with(|f| {
-                    for (i, chain_expr_node) in chain_expressions.iter().enumerate() {
+                    let mut prev_end = initial_prev_end;
+                    for (i, chain_expr_node) in chain_refs.iter().enumerate() {
                         if i > 0 {
                             write!(f, [hard_line_break()]);
                         }
-                        write!(f, [FormatArkUIChainExpression(chain_expr_node)]);
+                        write!(f, [FormatArkUIChainExpression::new(chain_expr_node, prev_end)]);
+                        prev_end = chain_expr_node.span.end;
                     }
                 });
 

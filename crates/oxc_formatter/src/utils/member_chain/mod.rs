@@ -234,10 +234,11 @@ impl<'a> Format<'a> for MemberChain<'a, '_> {
         // For ArkUI leading-dot expressions, use the same break logic as ArkUI components
         let should_break_arkui_style = if is_arkui_leading_dot {
             // Count call expressions in the chain
-            let call_count = self.members()
+            let call_count = self
+                .members()
                 .filter(|member| matches!(member, ChainMember::CallExpression { .. }))
                 .count();
-            
+
             // Break if there are multiple calls (like ArkUI components)
             if call_count > 1 {
                 true
@@ -370,7 +371,10 @@ fn compute_remaining_groups<'a, 'b>(
         let has_trailing_comment =
             f.comments().comments_after(span.end).first().is_some_and(|comment| {
                 span.end <= comment.span.start
-                    && f.source_text().bytes_range(span.end, comment.span.start).trim_ascii().is_empty()
+                    && f.source_text()
+                        .bytes_range(span.end, comment.span.start)
+                        .trim_ascii()
+                        .is_empty()
             });
 
         match member {

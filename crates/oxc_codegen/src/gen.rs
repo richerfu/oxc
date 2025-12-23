@@ -1578,7 +1578,7 @@ impl GenExpr for LeadingDotMemberExpression<'_> {
             p.print_ascii_byte(b'.');
         }
         self.property.print(p, ctx);
-        
+
         // Format the rest of the chain if present
         if let Some(rest) = &self.rest {
             rest.print_expr(p, Precedence::Postfix, ctx);

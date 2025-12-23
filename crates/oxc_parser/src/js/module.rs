@@ -268,7 +268,8 @@ impl<'a> ParserImpl<'a> {
                     default_specifier,
                 ));
                 if self.at(Kind::LCurly) {
-                    let mut import_specifiers = self.parse_import_specifiers(ImportOrExportKind::Value);
+                    let mut import_specifiers =
+                        self.parse_import_specifiers(ImportOrExportKind::Value);
                     specifiers.append(&mut import_specifiers);
                 } else {
                     return self.unexpected();
@@ -278,12 +279,10 @@ impl<'a> ParserImpl<'a> {
             } else {
                 // `import lazy x from '...'` - just default import
                 self.expect(Kind::From);
-                Some(self.ast.vec1(
-                    self.ast.import_declaration_specifier_import_default_specifier(
-                        default_specifier.span,
-                        default_specifier,
-                    ),
-                ))
+                Some(self.ast.vec1(self.ast.import_declaration_specifier_import_default_specifier(
+                    default_specifier.span,
+                    default_specifier,
+                )))
             }
         } else if self.at(Kind::From) {
             // `import lazy from '...'` - no specifiers
@@ -298,17 +297,13 @@ impl<'a> ParserImpl<'a> {
         // If we have specifiers, parse_import_declaration_specifiers already consumed "from"
         // If we don't have specifiers, we either already consumed "from" or source comes directly
         let source = self.parse_literal_string();
-        
+
         let with_clause = self.parse_import_attributes();
         self.asi();
         let span = self.end_span(span);
 
-        let lazy_import_decl = self.ast.alloc_lazy_import_declaration(
-            span,
-            specifiers,
-            source,
-            with_clause,
-        );
+        let lazy_import_decl =
+            self.ast.alloc_lazy_import_declaration(span, specifiers, source, with_clause);
 
         Statement::LazyImportDeclaration(lazy_import_decl)
     }

@@ -173,7 +173,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, LeadingDotMemberExpression<'a>> {
                 self.property()
             ))]
         );
-        
+
         // Note: The `rest` field is currently not used in formatting.
         // Chain expressions like `.property.method()` are handled by the parser
         // creating separate CallExpression nodes, so we don't need to format `rest` here.

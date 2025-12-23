@@ -45,6 +45,14 @@ impl<'a> Format<'a> for AstNode<'a, ArenaVec<'a, Argument<'a>>> {
         let arguments = self.as_ref();
 
         if self.is_empty() {
+            // For ArkUIComponentExpression, always skip dangling comments for empty arguments.
+            // The parent span includes the entire component (including children block `{...}`),
+            // which would incorrectly pick up comments meant for children. Comments between
+            // `()` for ArkUI components are extremely rare, so we skip them entirely.
+            if matches!(self.parent, AstNodes::ArkUIComponentExpression(_)) {
+                return write!(f, [l_paren_token, r_paren_token]);
+            }
+
             return write!(
                 f,
                 [

@@ -585,9 +585,9 @@ impl<'a> MemberExpression<'a> {
     }
 
     /// Returns a reference to the [`Expression`] that is the object of this member expression.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if called on a `LeadingDotMemberExpression`, which has no object field.
     /// Use [`MemberExpression::is_leading_dot()`] to check before calling this method.
     pub fn object(&self) -> &Expression<'a> {
@@ -596,7 +596,9 @@ impl<'a> MemberExpression<'a> {
             MemberExpression::StaticMemberExpression(expr) => &expr.object,
             MemberExpression::PrivateFieldExpression(expr) => &expr.object,
             MemberExpression::LeadingDotMemberExpression(_) => {
-                panic!("LeadingDotMemberExpression has no object field - use is_leading_dot() to check")
+                panic!(
+                    "LeadingDotMemberExpression has no object field - use is_leading_dot() to check"
+                )
             }
         }
     }
@@ -607,9 +609,9 @@ impl<'a> MemberExpression<'a> {
     }
 
     /// Returns a mutable reference to the [`Expression`] that is the object of this member expression.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if called on a `LeadingDotMemberExpression`, which has no object field.
     /// Use [`MemberExpression::is_leading_dot()`] to check before calling this method.
     pub fn object_mut(&mut self) -> &mut Expression<'a> {
@@ -618,7 +620,9 @@ impl<'a> MemberExpression<'a> {
             MemberExpression::StaticMemberExpression(expr) => &mut expr.object,
             MemberExpression::PrivateFieldExpression(expr) => &mut expr.object,
             MemberExpression::LeadingDotMemberExpression(_) => {
-                panic!("LeadingDotMemberExpression has no object field - use is_leading_dot() to check")
+                panic!(
+                    "LeadingDotMemberExpression has no object field - use is_leading_dot() to check"
+                )
             }
         }
     }

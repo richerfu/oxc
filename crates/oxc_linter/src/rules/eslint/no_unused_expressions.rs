@@ -115,7 +115,7 @@ impl NoUnusedExpressions {
             | Expression::ComputedMemberExpression(_)
             | Expression::MetaProperty(_)
             | Expression::ObjectExpression(_)
-            |             Expression::PrivateFieldExpression(_)
+            | Expression::PrivateFieldExpression(_)
             | Expression::StaticMemberExpression(_)
             | Expression::LeadingDotMemberExpression(_)
             | Expression::TemplateLiteral(_)

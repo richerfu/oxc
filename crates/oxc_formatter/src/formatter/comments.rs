@@ -142,6 +142,8 @@ impl<'a> Comments<'a> {
     #[inline]
     pub fn unprinted_comments(&self) -> &'a [Comment] {
         let end = self.view_limit.unwrap_or(self.inner.len());
+        // Ensure end is never less than printed_count to avoid slice panics
+        let end = end.max(self.printed_count);
         &self.inner[self.printed_count..end]
     }
 
@@ -446,8 +448,9 @@ impl<'a> Comments<'a> {
             .position(|c| c.span.start >= end_pos)
             .map_or(self.inner.len(), |idx| self.printed_count + idx);
 
-        // Only update if we're actually limiting the view
-        if limit_index < self.inner.len() {
+        // Only update if we're actually limiting the view AND the limit is valid.
+        // The limit must be >= printed_count to avoid slice panics in unprinted_comments().
+        if limit_index < self.inner.len() && limit_index >= self.printed_count {
             self.view_limit = Some(limit_index);
         }
 

@@ -217,7 +217,7 @@ impl<'a> ParserImpl<'a> {
         computed: bool,
     ) -> Box<'a, ObjectProperty<'a>> {
         self.expect(Kind::Colon);
-        
+
         // Check if the value is an ArkUI object literal with leading-dot expressions
         // Example: normal: { .borderRadius(20) .borderWidth(1) }
         let value = if self.source_type.is_arkui() && self.at(Kind::LCurly) {
@@ -226,13 +226,13 @@ impl<'a> ParserImpl<'a> {
             let obj_span = self.start_span();
             let opening_span = self.cur_token().span();
             self.expect(Kind::LCurly);
-            
+
             // Check if next token is Dot (after consuming whitespace)
             if self.at(Kind::Dot) {
                 // Parse as ArkUI object literal with expression statements
                 // We've already consumed the opening brace, so we need to handle it differently
                 let mut properties = self.ast.vec();
-                
+
                 // Parse expression statements until closing brace
                 while !self.at(Kind::RCurly) && !self.has_fatal_error() {
                     if self.at(Kind::Dot) {
@@ -244,7 +244,8 @@ impl<'a> ParserImpl<'a> {
 
                         // Create a property with the expression as value
                         // Use a synthetic key for the expression statement
-                        let key_name = self.ast.identifier_name(expr_end_span, oxc_span::Atom::from(""));
+                        let key_name =
+                            self.ast.identifier_name(expr_end_span, oxc_span::Atom::from(""));
                         let key = PropertyKey::StaticIdentifier(self.alloc(key_name));
                         let property = self.ast.alloc_object_property(
                             expr_end_span,
@@ -276,34 +277,40 @@ impl<'a> ParserImpl<'a> {
                         }
                     }
                 }
-                
+
                 self.expect(Kind::RCurly);
-                let obj_expr = Expression::ObjectExpression(self.ast.alloc_object_expression(self.end_span(obj_span), properties));
+                let obj_expr = Expression::ObjectExpression(
+                    self.ast.alloc_object_expression(self.end_span(obj_span), properties),
+                );
                 // Check for type assertion after object expression
                 self.parse_type_assertion_if_present(obj_expr)
             } else {
                 // Not a leading-dot expression, parse as normal object expression
                 // We've already consumed the opening brace, so we need to parse the rest
-                let (object_expression_properties, comma_span) = self.context_add(Context::In, |p| {
-                    p.parse_delimited_list(
-                        Kind::RCurly,
-                        Kind::Comma,
-                        opening_span,
-                        Self::parse_object_expression_property,
-                    )
-                });
+                let (object_expression_properties, comma_span) =
+                    self.context_add(Context::In, |p| {
+                        p.parse_delimited_list(
+                            Kind::RCurly,
+                            Kind::Comma,
+                            opening_span,
+                            Self::parse_object_expression_property,
+                        )
+                    });
                 if let Some(comma_span) = comma_span {
                     self.state.trailing_commas.insert(obj_span, self.end_span(comma_span));
                 }
                 self.expect(Kind::RCurly);
-                let obj_expr = Expression::ObjectExpression(self.ast.alloc_object_expression(self.end_span(obj_span), object_expression_properties));
+                let obj_expr = Expression::ObjectExpression(self.ast.alloc_object_expression(
+                    self.end_span(obj_span),
+                    object_expression_properties,
+                ));
                 // Check for type assertion after object expression
                 self.parse_type_assertion_if_present(obj_expr)
             }
         } else {
             self.parse_assignment_expression_or_higher()
         };
-        
+
         self.ast.alloc_object_property(
             self.end_span(span),
             PropertyKind::Init,

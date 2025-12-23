@@ -67,6 +67,16 @@ impl<T: GetSpan> GetSpan for &AstNode<'_, T> {
 }
 
 impl<T> AstNode<'_, T> {
+    /// Returns the span of the node that follows this node in the AST, if any.
+    ///
+    /// This is used for comment placement logic to determine where dangling comments
+    /// should be limited to (e.g., for ArkUIComponentExpression with empty arguments,
+    /// we don't want to include comments from children/chain expressions).
+    #[inline]
+    pub fn following_span(&self) -> Option<Span> {
+        self.following_span
+    }
+
     /// Returns an iterator over all ancestor nodes in the AST, starting from self.
     ///
     /// The iteration includes the current node and proceeds upward through the tree,

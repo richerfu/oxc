@@ -7453,6 +7453,34 @@ impl<'a> AstBuilder<'a> {
         ))
     }
 
+    /// Build a [`ModuleDeclaration::LazyImportDeclaration`].
+    ///
+    /// This node contains a [`LazyImportDeclaration`] that will be stored in the memory arena.
+    ///
+    /// ## Parameters
+    /// * `span`: The [`Span`] covering this node
+    /// * `specifiers`: Import specifiers (e.g., `{ c }`)
+    /// * `source`
+    /// * `with_clause`: Some(vec![]) for empty assertion
+    #[inline]
+    pub fn module_declaration_lazy_import_declaration<T1>(
+        self,
+        span: Span,
+        specifiers: Option<Vec<'a, ImportDeclarationSpecifier<'a>>>,
+        source: StringLiteral<'a>,
+        with_clause: T1,
+    ) -> ModuleDeclaration<'a>
+    where
+        T1: IntoIn<'a, Option<Box<'a, WithClause<'a>>>>,
+    {
+        ModuleDeclaration::LazyImportDeclaration(self.alloc_lazy_import_declaration(
+            span,
+            specifiers,
+            source,
+            with_clause,
+        ))
+    }
+
     /// Build a [`ModuleDeclaration::ExportAllDeclaration`].
     ///
     /// This node contains an [`ExportAllDeclaration`] that will be stored in the memory arena.
@@ -7780,6 +7808,62 @@ impl<'a> AstBuilder<'a> {
     {
         Box::new_in(
             self.import_declaration(span, specifiers, source, phase, with_clause, import_kind),
+            self.allocator,
+        )
+    }
+
+    /// Build a [`LazyImportDeclaration`].
+    ///
+    /// If you want the built node to be allocated in the memory arena,
+    /// use [`AstBuilder::alloc_lazy_import_declaration`] instead.
+    ///
+    /// ## Parameters
+    /// * `span`: The [`Span`] covering this node
+    /// * `specifiers`: Import specifiers (e.g., `{ c }`)
+    /// * `source`
+    /// * `with_clause`: Some(vec![]) for empty assertion
+    #[inline]
+    pub fn lazy_import_declaration<T1>(
+        self,
+        span: Span,
+        specifiers: Option<Vec<'a, ImportDeclarationSpecifier<'a>>>,
+        source: StringLiteral<'a>,
+        with_clause: T1,
+    ) -> LazyImportDeclaration<'a>
+    where
+        T1: IntoIn<'a, Option<Box<'a, WithClause<'a>>>>,
+    {
+        LazyImportDeclaration {
+            span,
+            specifiers,
+            source,
+            with_clause: with_clause.into_in(self.allocator),
+        }
+    }
+
+    /// Build a [`LazyImportDeclaration`], and store it in the memory arena.
+    ///
+    /// Returns a [`Box`] containing the newly-allocated node.
+    /// If you want a stack-allocated node, use [`AstBuilder::lazy_import_declaration`] instead.
+    ///
+    /// ## Parameters
+    /// * `span`: The [`Span`] covering this node
+    /// * `specifiers`: Import specifiers (e.g., `{ c }`)
+    /// * `source`
+    /// * `with_clause`: Some(vec![]) for empty assertion
+    #[inline]
+    pub fn alloc_lazy_import_declaration<T1>(
+        self,
+        span: Span,
+        specifiers: Option<Vec<'a, ImportDeclarationSpecifier<'a>>>,
+        source: StringLiteral<'a>,
+        with_clause: T1,
+    ) -> Box<'a, LazyImportDeclaration<'a>>
+    where
+        T1: IntoIn<'a, Option<Box<'a, WithClause<'a>>>>,
+    {
+        Box::new_in(
+            self.lazy_import_declaration(span, specifiers, source, with_clause),
             self.allocator,
         )
     }

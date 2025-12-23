@@ -2779,6 +2779,16 @@ impl<'a> Format<'a> for AstNode<'a, ModuleDeclaration<'a>> {
                     })
                     .fmt(f);
             }
+            ModuleDeclaration::LazyImportDeclaration(inner) => {
+                allocator
+                    .alloc(AstNode::<LazyImportDeclaration> {
+                        inner,
+                        parent,
+                        allocator,
+                        following_span: self.following_span,
+                    })
+                    .fmt(f);
+            }
             ModuleDeclaration::ExportAllDeclaration(inner) => {
                 allocator
                     .alloc(AstNode::<ExportAllDeclaration> {
@@ -2870,6 +2880,19 @@ impl<'a> Format<'a> for AstNode<'a, ImportExpression<'a>> {
 }
 
 impl<'a> Format<'a> for AstNode<'a, ImportDeclaration<'a>> {
+    fn fmt(&self, f: &mut Formatter<'_, 'a>) {
+        let is_suppressed = f.comments().is_suppressed(self.span().start);
+        self.format_leading_comments(f);
+        if is_suppressed {
+            FormatSuppressedNode(self.span()).fmt(f);
+        } else {
+            self.write(f);
+        }
+        self.format_trailing_comments(f);
+    }
+}
+
+impl<'a> Format<'a> for AstNode<'a, LazyImportDeclaration<'a>> {
     fn fmt(&self, f: &mut Formatter<'_, 'a>) {
         let is_suppressed = f.comments().is_suppressed(self.span().start);
         self.format_leading_comments(f);

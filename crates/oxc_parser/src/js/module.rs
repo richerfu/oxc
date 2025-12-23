@@ -66,6 +66,32 @@ impl<'a> ParserImpl<'a> {
         span: u32,
         should_record_module_record: bool,
     ) -> Statement<'a> {
+        // Check for ArkUI lazy import first:
+        // - `import lazy { x } from "mod";`
+        // - `import lazy { x as v } from "mod";`
+        // - `import lazy x from "mod";`
+        // Note: `import lazy from "mod";` is a regular import with default specifier named "lazy"
+        if self.source_type.is_arkui()
+            && self.cur_kind().is_identifier()
+            && self.cur_src() == "lazy"
+        {
+            // Check if this is a lazy import by looking at what follows "lazy"
+            let is_lazy_import = self.lookahead(|p| {
+                p.bump_any(); // skip "lazy"
+                // lazy import if followed by `{`, `*`, or an identifier that's not `from`
+                match p.cur_kind() {
+                    Kind::LCurly | Kind::Star => true,
+                    k if k.is_identifier() && p.cur_src() != "from" => true,
+                    _ => false,
+                }
+            });
+
+            if is_lazy_import {
+                self.bump_any(); // consume "lazy"
+                return self.parse_lazy_import_declaration(span, should_record_module_record);
+            }
+        }
+
         let token_after_import = self.cur_token();
         let mut identifier_after_import: Option<BindingIdentifier<'_>> =
             if self.cur_kind().is_binding_identifier() {
@@ -210,6 +236,81 @@ impl<'a> ParserImpl<'a> {
         }
 
         Statement::ImportDeclaration(import_decl)
+    }
+
+    /// Parse ArkUI lazy import declaration:
+    /// - `import lazy { x } from "mod";` - named import
+    /// - `import lazy { x as v } from "mod";` - named import with alias
+    /// - `import lazy x from "mod";` - default import
+    fn parse_lazy_import_declaration(
+        &mut self,
+        span: u32,
+        _should_record_module_record: bool,
+    ) -> Statement<'a> {
+        // We've already consumed "import" and "lazy"
+        // Now parse the specifiers
+        let specifiers = if self.at(Kind::Str) {
+            // `import lazy 'source'` - no specifiers, source comes directly
+            None
+        } else if self.at(Kind::LCurly) {
+            // `import lazy { ... } from '...'` - named imports
+            // parse_import_declaration_specifiers will handle the "from" keyword
+            Some(self.parse_import_declaration_specifiers(None, ImportOrExportKind::Value))
+        } else if self.cur_kind().is_binding_identifier() {
+            // `import lazy x from '...'` - default import
+            let default_specifier = self.parse_binding_identifier();
+            // Check if there's a comma followed by named imports, or just expect "from"
+            if self.eat(Kind::Comma) {
+                // `import lazy x, { ... } from '...'` - default + named imports
+                let mut specifiers = self.ast.vec_with_capacity(2);
+                specifiers.push(self.ast.import_declaration_specifier_import_default_specifier(
+                    default_specifier.span,
+                    default_specifier,
+                ));
+                if self.at(Kind::LCurly) {
+                    let mut import_specifiers = self.parse_import_specifiers(ImportOrExportKind::Value);
+                    specifiers.append(&mut import_specifiers);
+                } else {
+                    return self.unexpected();
+                }
+                self.expect(Kind::From);
+                Some(specifiers)
+            } else {
+                // `import lazy x from '...'` - just default import
+                self.expect(Kind::From);
+                Some(self.ast.vec1(
+                    self.ast.import_declaration_specifier_import_default_specifier(
+                        default_specifier.span,
+                        default_specifier,
+                    ),
+                ))
+            }
+        } else if self.at(Kind::From) {
+            // `import lazy from '...'` - no specifiers
+            self.expect(Kind::From);
+            None
+        } else {
+            // Unexpected token
+            return self.unexpected();
+        };
+
+        // Parse the source string
+        // If we have specifiers, parse_import_declaration_specifiers already consumed "from"
+        // If we don't have specifiers, we either already consumed "from" or source comes directly
+        let source = self.parse_literal_string();
+        
+        let with_clause = self.parse_import_attributes();
+        self.asi();
+        let span = self.end_span(span);
+
+        let lazy_import_decl = self.ast.alloc_lazy_import_declaration(
+            span,
+            specifiers,
+            source,
+            with_clause,
+        );
+
+        Statement::LazyImportDeclaration(lazy_import_decl)
     }
 
     // Full Syntax: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#syntax>

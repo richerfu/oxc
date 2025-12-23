@@ -452,6 +452,7 @@ pub fn check_module_declaration(decl: &ModuleDeclarationKind, ctx: &SemanticBuil
     }
 
     let text = match decl {
+        ModuleDeclarationKind::LazyImport(_) => "lazy import",
         ModuleDeclarationKind::Import(_) => "import statement",
         ModuleDeclarationKind::ExportAll(_)
         | ModuleDeclarationKind::ExportDefault(_)

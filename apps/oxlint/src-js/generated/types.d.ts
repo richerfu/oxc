@@ -57,6 +57,7 @@ export type Expression =
   | TSNonNullExpression
   | TSInstantiationExpression
   | V8IntrinsicExpression
+  | ArkUIComponentExpression
   | MemberExpression;
 
 export interface IdentifierName extends Span {
@@ -162,7 +163,8 @@ export interface TemplateElementValue {
 export type MemberExpression =
   | ComputedMemberExpression
   | StaticMemberExpression
-  | PrivateFieldExpression;
+  | PrivateFieldExpression
+  | LeadingDotMemberExpression;
 
 export interface ComputedMemberExpression extends Span {
   type: "MemberExpression";
@@ -187,6 +189,15 @@ export interface PrivateFieldExpression extends Span {
   object: Expression;
   property: PrivateIdentifier;
   optional: boolean;
+  computed: false;
+  parent: Node;
+}
+
+export interface LeadingDotMemberExpression extends Span {
+  type: "MemberExpression";
+  property: IdentifierName;
+  optional: boolean;
+  rest: Expression | null;
   computed: false;
   parent: Node;
 }
@@ -409,6 +420,7 @@ export type Statement =
   | TryStatement
   | WhileStatement
   | WithStatement
+  | StructStatement
   | Declaration
   | ModuleDeclaration;
 
@@ -659,6 +671,7 @@ export interface BindingRestElement extends Span {
 
 export interface Function extends Span {
   type: FunctionType;
+  decorators?: Array<Decorator>;
   id: BindingIdentifier | null;
   generator: boolean;
   async: boolean;
@@ -810,6 +823,7 @@ export interface StaticBlock extends Span {
 
 export type ModuleDeclaration =
   | ImportDeclaration
+  | LazyImportDeclaration
   | ExportAllDeclaration
   | ExportDefaultDeclaration
   | ExportNamedDeclaration
@@ -853,6 +867,14 @@ export interface ImportDeclaration extends Span {
   parent: Node;
 }
 
+export interface LazyImportDeclaration extends Span {
+  type: "LazyImportDeclaration";
+  specifiers: Array<ImportDeclarationSpecifier>;
+  source: StringLiteral;
+  attributes: Array<ImportAttribute>;
+  parent: Node;
+}
+
 export type ImportPhase = "source" | "defer";
 
 export type ImportDeclarationSpecifier =
@@ -891,6 +913,7 @@ export type ImportAttributeKey = IdentifierName | StringLiteral;
 
 export interface ExportNamedDeclaration extends Span {
   type: "ExportNamedDeclaration";
+  decorators?: Array<Decorator>;
   declaration: Declaration | null;
   specifiers: Array<ExportSpecifier>;
   source: StringLiteral | null;
@@ -923,7 +946,12 @@ export interface ExportSpecifier extends Span {
   parent: Node;
 }
 
-export type ExportDefaultDeclarationKind = Function | Class | TSInterfaceDeclaration | Expression;
+export type ExportDefaultDeclarationKind =
+  | Function
+  | Class
+  | TSInterfaceDeclaration
+  | StructStatement
+  | Expression;
 
 export type ModuleExportName = IdentifierName | IdentifierReference | StringLiteral;
 
@@ -1686,6 +1714,35 @@ export interface JSDocUnknownType extends Span {
   parent: Node;
 }
 
+export interface StructStatement extends Span {
+  type: "StructStatement";
+  decorators: Array<Decorator>;
+  id: BindingIdentifier;
+  typeParameters?: TSTypeParameterDeclaration | null;
+  body: StructBody;
+  parent: Node;
+}
+
+export interface StructBody extends Span {
+  type: "StructBody";
+  body: Array<StructElement>;
+  parent: Node;
+}
+
+export type StructElement = PropertyDefinition | MethodDefinition;
+
+export interface ArkUIComponentExpression extends Span {
+  type: "ArkUIComponentExpression";
+  callee: Expression;
+  typeArguments?: TSTypeParameterInstantiation | null;
+  arguments: Array<Argument>;
+  children: Array<ArkUIChild>;
+  chainExpressions: Array<CallExpression>;
+  parent: Node;
+}
+
+export type ArkUIChild = ArkUIComponentExpression | Expression | Statement;
+
 export type AssignmentOperator =
   | "="
   | "+="
@@ -1752,6 +1809,7 @@ export type Node =
   | ComputedMemberExpression
   | StaticMemberExpression
   | PrivateFieldExpression
+  | LeadingDotMemberExpression
   | CallExpression
   | NewExpression
   | MetaProperty
@@ -1816,6 +1874,7 @@ export type Node =
   | AccessorProperty
   | ImportExpression
   | ImportDeclaration
+  | LazyImportDeclaration
   | ImportSpecifier
   | ImportDefaultSpecifier
   | ImportNamespaceSpecifier
@@ -1919,4 +1978,7 @@ export type Node =
   | JSDocNullableType
   | JSDocNonNullableType
   | JSDocUnknownType
+  | StructStatement
+  | StructBody
+  | ArkUIComponentExpression
   | ParamPattern;

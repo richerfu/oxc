@@ -567,6 +567,11 @@ pub trait Visit<'a>: Sized {
     }
 
     #[inline]
+    fn visit_lazy_import_declaration(&mut self, it: &LazyImportDeclaration<'a>) {
+        walk_lazy_import_declaration(self, it);
+    }
+
+    #[inline]
     fn visit_import_declaration_specifier(&mut self, it: &ImportDeclarationSpecifier<'a>) {
         walk_import_declaration_specifier(self, it);
     }
@@ -2717,6 +2722,9 @@ pub mod walk {
         // No `AstKind` for this type
         match it {
             ModuleDeclaration::ImportDeclaration(it) => visitor.visit_import_declaration(it),
+            ModuleDeclaration::LazyImportDeclaration(it) => {
+                visitor.visit_lazy_import_declaration(it)
+            }
             ModuleDeclaration::ExportAllDeclaration(it) => visitor.visit_export_all_declaration(it),
             ModuleDeclaration::ExportDefaultDeclaration(it) => {
                 visitor.visit_export_default_declaration(it)
@@ -2762,6 +2770,24 @@ pub mod walk {
     #[inline]
     pub fn walk_import_declaration<'a, V: Visit<'a>>(visitor: &mut V, it: &ImportDeclaration<'a>) {
         let kind = AstKind::ImportDeclaration(visitor.alloc(it));
+        visitor.enter_node(kind);
+        visitor.visit_span(&it.span);
+        if let Some(specifiers) = &it.specifiers {
+            visitor.visit_import_declaration_specifiers(specifiers);
+        }
+        visitor.visit_string_literal(&it.source);
+        if let Some(with_clause) = &it.with_clause {
+            visitor.visit_with_clause(with_clause);
+        }
+        visitor.leave_node(kind);
+    }
+
+    #[inline]
+    pub fn walk_lazy_import_declaration<'a, V: Visit<'a>>(
+        visitor: &mut V,
+        it: &LazyImportDeclaration<'a>,
+    ) {
+        let kind = AstKind::LazyImportDeclaration(visitor.alloc(it));
         visitor.enter_node(kind);
         visitor.visit_span(&it.span);
         if let Some(specifiers) = &it.specifiers {

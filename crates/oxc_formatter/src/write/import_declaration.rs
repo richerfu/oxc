@@ -60,6 +60,26 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ImportDeclaration<'a>> {
     }
 }
 
+impl<'a> FormatWrite<'a> for AstNode<'a, LazyImportDeclaration<'a>> {
+    fn write(&self, f: &mut Formatter<'_, 'a>) {
+        let decl = &format_with(|f| {
+            write!(f, ["import", space(), "lazy"]);
+
+            if let Some(specifiers) = self.specifiers() {
+                write!(f, [space(), specifiers, space(), "from", space()]);
+            } else {
+                write!(f, [space(), "from", space()]);
+            }
+
+            format_import_and_export_source_with_clause(self.source(), self.with_clause(), f);
+
+            write!(f, [OptionalSemicolon]);
+        });
+
+        write!(f, [labelled(LabelId::of(JsLabels::ImportDeclaration), decl)]);
+    }
+}
+
 impl<'a> Format<'a> for AstNode<'a, Vec<'a, ImportDeclarationSpecifier<'a>>> {
     fn fmt(&self, f: &mut Formatter<'_, 'a>) {
         let mut specifiers_iter = self.iter().peekable();

@@ -517,6 +517,12 @@ impl<'a> VisitMut<'a> for Utf8ToUtf16Converter<'_> {
         self.convert_offset(&mut it.span.end);
     }
 
+    fn visit_lazy_import_declaration(&mut self, it: &mut LazyImportDeclaration<'a>) {
+        self.convert_offset(&mut it.span.start);
+        walk_mut::walk_lazy_import_declaration(self, it);
+        self.convert_offset(&mut it.span.end);
+    }
+
     fn visit_import_specifier(&mut self, it: &mut ImportSpecifier<'a>) {
         // Custom implementation
         self.convert_import_specifier(it);

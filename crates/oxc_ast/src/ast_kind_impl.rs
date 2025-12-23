@@ -51,6 +51,7 @@ impl<'a> AstKind<'a> {
     pub fn as_module_declaration_kind(&self) -> Option<ModuleDeclarationKind<'a>> {
         match self {
             Self::ImportDeclaration(decl) => Some(ModuleDeclarationKind::Import(decl)),
+            Self::LazyImportDeclaration(decl) => Some(ModuleDeclarationKind::LazyImport(decl)),
             Self::ExportAllDeclaration(decl) => Some(ModuleDeclarationKind::ExportAll(decl)),
             Self::ExportNamedDeclaration(decl) => Some(ModuleDeclarationKind::ExportNamed(decl)),
             Self::ExportDefaultDeclaration(decl) => {
@@ -496,6 +497,7 @@ impl AstKind<'_> {
             Self::Decorator(_) => "Decorator".into(),
 
             Self::ImportDeclaration(_) => "ImportDeclaration".into(),
+            Self::LazyImportDeclaration(_) => "LazyImportDeclaration".into(),
             Self::ImportSpecifier(i) => format!("ImportSpecifier({})", i.local.name).into(),
             Self::ExportSpecifier(e) => format!("ExportSpecifier({})", e.local.name()).into(),
             Self::ImportDefaultSpecifier(_) => "ImportDefaultSpecifier".into(),
@@ -761,6 +763,8 @@ impl GetAddress for MemberExpressionKind<'_> {
 pub enum ModuleDeclarationKind<'a> {
     /// An import declaration like `import foo from 'bar'`
     Import(&'a ImportDeclaration<'a>),
+    /// A lazy import declaration like `import lazy { c } from './C'` (ArkUI)
+    LazyImport(&'a LazyImportDeclaration<'a>),
     /// An export all declaration like `export * from 'foo'`
     ExportAll(&'a ExportAllDeclaration<'a>),
     /// A named export declaration like `export { foo, bar }`
@@ -791,6 +795,7 @@ impl GetSpan for ModuleDeclarationKind<'_> {
     fn span(&self) -> Span {
         match self {
             Self::Import(decl) => decl.span,
+            Self::LazyImport(decl) => decl.span,
             Self::ExportAll(decl) => decl.span,
             Self::ExportNamed(decl) => decl.span,
             Self::ExportDefault(decl) => decl.span,
@@ -805,6 +810,7 @@ impl GetAddress for ModuleDeclarationKind<'_> {
     fn address(&self) -> Address {
         match *self {
             Self::Import(decl) => decl.unstable_address(),
+            Self::LazyImport(decl) => decl.unstable_address(),
             Self::ExportAll(decl) => decl.unstable_address(),
             Self::ExportNamed(decl) => decl.unstable_address(),
             Self::ExportDefault(decl) => decl.unstable_address(),

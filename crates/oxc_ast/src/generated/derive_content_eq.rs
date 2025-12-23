@@ -743,6 +743,7 @@ impl ContentEq for Statement<'_> {
                 a.content_eq(b)
             }
             (Self::ImportDeclaration(a), Self::ImportDeclaration(b)) => a.content_eq(b),
+            (Self::LazyImportDeclaration(a), Self::LazyImportDeclaration(b)) => a.content_eq(b),
             (Self::ExportAllDeclaration(a), Self::ExportAllDeclaration(b)) => a.content_eq(b),
             (Self::ExportDefaultDeclaration(a), Self::ExportDefaultDeclaration(b)) => {
                 a.content_eq(b)
@@ -1285,6 +1286,7 @@ impl ContentEq for ModuleDeclaration<'_> {
     fn content_eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::ImportDeclaration(a), Self::ImportDeclaration(b)) => a.content_eq(b),
+            (Self::LazyImportDeclaration(a), Self::LazyImportDeclaration(b)) => a.content_eq(b),
             (Self::ExportAllDeclaration(a), Self::ExportAllDeclaration(b)) => a.content_eq(b),
             (Self::ExportDefaultDeclaration(a), Self::ExportDefaultDeclaration(b)) => {
                 a.content_eq(b)
@@ -1335,6 +1337,14 @@ impl ContentEq for ImportDeclaration<'_> {
             && ContentEq::content_eq(&self.phase, &other.phase)
             && ContentEq::content_eq(&self.with_clause, &other.with_clause)
             && ContentEq::content_eq(&self.import_kind, &other.import_kind)
+    }
+}
+
+impl ContentEq for LazyImportDeclaration<'_> {
+    fn content_eq(&self, other: &Self) -> bool {
+        ContentEq::content_eq(&self.specifiers, &other.specifiers)
+            && ContentEq::content_eq(&self.source, &other.source)
+            && ContentEq::content_eq(&self.with_clause, &other.with_clause)
     }
 }
 

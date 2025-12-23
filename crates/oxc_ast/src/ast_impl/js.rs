@@ -1859,6 +1859,7 @@ impl<'a> ModuleDeclaration<'a> {
     pub fn is_typescript_syntax(&self) -> bool {
         match self {
             ModuleDeclaration::ImportDeclaration(_) => false,
+            ModuleDeclaration::LazyImportDeclaration(_) => false,
             ModuleDeclaration::ExportDefaultDeclaration(decl) => decl.is_typescript_syntax(),
             ModuleDeclaration::ExportNamedDeclaration(decl) => decl.is_typescript_syntax(),
             ModuleDeclaration::ExportAllDeclaration(decl) => decl.is_typescript_syntax(),
@@ -1869,7 +1870,7 @@ impl<'a> ModuleDeclaration<'a> {
 
     /// Returns `true` if this is an [import declaration](`ModuleDeclaration::ImportDeclaration`).
     pub fn is_import(&self) -> bool {
-        matches!(self, Self::ImportDeclaration(_))
+        matches!(self, Self::ImportDeclaration(_) | Self::LazyImportDeclaration(_))
     }
 
     /// Returns `true` if this is an export declaration.
@@ -1899,6 +1900,7 @@ impl<'a> ModuleDeclaration<'a> {
     pub fn source(&self) -> Option<&StringLiteral<'a>> {
         match self {
             Self::ImportDeclaration(decl) => Some(&decl.source),
+            Self::LazyImportDeclaration(decl) => Some(&decl.source),
             Self::ExportAllDeclaration(decl) => Some(&decl.source),
             Self::ExportNamedDeclaration(decl) => decl.source.as_ref(),
             Self::ExportDefaultDeclaration(_)
@@ -1917,6 +1919,7 @@ impl<'a> ModuleDeclaration<'a> {
     pub fn with_clause(&self) -> Option<&WithClause<'a>> {
         match self {
             Self::ImportDeclaration(decl) => decl.with_clause.as_deref(),
+            Self::LazyImportDeclaration(decl) => decl.with_clause.as_deref(),
             Self::ExportAllDeclaration(decl) => decl.with_clause.as_deref(),
             Self::ExportNamedDeclaration(decl) => decl.with_clause.as_deref(),
             Self::ExportDefaultDeclaration(_)

@@ -508,6 +508,9 @@ macro_rules! inherit_variants {
                 /// `import * as t from './world.js';`
                 ImportDeclaration(Box<'a, ImportDeclaration<'a>>) = 64,
                 /// Inherited from [`ModuleDeclaration`].
+                /// `import lazy { c } from './C';` (ArkUI lazy import)
+                LazyImportDeclaration(Box<'a, LazyImportDeclaration<'a>>) = 70,
+                /// Inherited from [`ModuleDeclaration`].
                 /// `export * as numbers from '../numbers.js'`
                 ExportAllDeclaration(Box<'a, ExportAllDeclaration<'a>>) = 65,
                 /// Inherited from [`ModuleDeclaration`].
@@ -540,6 +543,7 @@ macro_rules! inherit_variants {
             to_module_declaration_mut,
             [
                 ImportDeclaration,
+                LazyImportDeclaration,
                 ExportAllDeclaration,
                 ExportDefaultDeclaration,
                 ExportNamedDeclaration,

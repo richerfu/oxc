@@ -151,12 +151,16 @@ function constructExpression(pos, ast) {
       return constructBoxTSInstantiationExpression(pos + 8, ast);
     case 39:
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
+    case 40:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for Expression`);
   }
@@ -527,12 +531,16 @@ function constructArrayExpressionElement(pos, ast) {
       return constructBoxTSInstantiationExpression(pos + 8, ast);
     case 39:
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
+    case 40:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxSpreadElement(pos + 8, ast);
     case 65:
@@ -799,12 +807,16 @@ function constructPropertyKey(pos, ast) {
       return constructBoxTSInstantiationExpression(pos + 8, ast);
     case 39:
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
+    case 40:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxIdentifierName(pos + 8, ast);
     case 65:
@@ -1043,6 +1055,8 @@ function constructMemberExpression(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for MemberExpression`);
   }
@@ -1221,6 +1235,64 @@ export class PrivateFieldExpression {
 }
 
 const DebugPrivateFieldExpression = class PrivateFieldExpression {};
+
+export class LeadingDotMemberExpression {
+  type = "LeadingDotMemberExpression";
+  #internal;
+
+  constructor(pos, ast) {
+    if (ast?.token !== TOKEN) constructorError();
+
+    const { nodes } = ast;
+    const cached = nodes.get(pos);
+    if (cached !== void 0) return cached;
+
+    this.#internal = { pos, ast };
+    nodes.set(pos, this);
+  }
+
+  get start() {
+    const internal = this.#internal;
+    return constructU32(internal.pos, internal.ast);
+  }
+
+  get end() {
+    const internal = this.#internal;
+    return constructU32(internal.pos + 4, internal.ast);
+  }
+
+  get property() {
+    const internal = this.#internal;
+    return new IdentifierName(internal.pos + 8, internal.ast);
+  }
+
+  get optional() {
+    const internal = this.#internal;
+    return constructBool(internal.pos + 48, internal.ast);
+  }
+
+  get rest() {
+    const internal = this.#internal;
+    return constructOptionExpression(internal.pos + 32, internal.ast);
+  }
+
+  toJSON() {
+    return {
+      type: "LeadingDotMemberExpression",
+      start: this.start,
+      end: this.end,
+      property: this.property,
+      optional: this.optional,
+      rest: this.rest,
+    };
+  }
+
+  [inspectSymbol]() {
+    return Object.setPrototypeOf(this.toJSON(), DebugLeadingDotMemberExpression.prototype);
+  }
+}
+
+const DebugLeadingDotMemberExpression = class LeadingDotMemberExpression {};
 
 export class CallExpression {
   type = "CallExpression";
@@ -1528,12 +1600,16 @@ function constructArgument(pos, ast) {
       return constructBoxTSInstantiationExpression(pos + 8, ast);
     case 39:
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
+    case 40:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxSpreadElement(pos + 8, ast);
     default:
@@ -1957,6 +2033,8 @@ function constructAssignmentTarget(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for AssignmentTarget`);
   }
@@ -1980,6 +2058,8 @@ function constructSimpleAssignmentTarget(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for SimpleAssignmentTarget`);
   }
@@ -2168,6 +2248,8 @@ function constructAssignmentTargetMaybeDefault(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(
         `Unexpected discriminant ${ast.buffer[pos]} for AssignmentTargetMaybeDefault`,
@@ -2540,6 +2622,8 @@ function constructChainElement(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ChainElement`);
   }
@@ -2625,10 +2709,12 @@ function constructStatement(pos, ast) {
       return constructBoxThrowStatement(pos + 8, ast);
     case 15:
       return constructBoxTryStatement(pos + 8, ast);
-    case 16:
-      return constructBoxWhileStatement(pos + 8, ast);
     case 17:
+      return constructBoxWhileStatement(pos + 8, ast);
+    case 18:
       return constructBoxWithStatement(pos + 8, ast);
+    case 19:
+      return constructBoxStructStatement(pos + 8, ast);
     case 32:
       return constructBoxVariableDeclaration(pos + 8, ast);
     case 33:
@@ -2659,6 +2745,8 @@ function constructStatement(pos, ast) {
       return constructBoxTSExportAssignment(pos + 8, ast);
     case 69:
       return constructBoxTSNamespaceExportDeclaration(pos + 8, ast);
+    case 70:
+      return constructBoxLazyImportDeclaration(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for Statement`);
   }
@@ -3371,12 +3459,16 @@ function constructForStatementInit(pos, ast) {
       return constructBoxTSInstantiationExpression(pos + 8, ast);
     case 39:
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
+    case 40:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxVariableDeclaration(pos + 8, ast);
     default:
@@ -3466,6 +3558,8 @@ function constructForStatementLeft(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ForStatementLeft`);
   }
@@ -4440,7 +4534,7 @@ export class Function {
     const cached = nodes.get(pos);
     if (cached !== void 0) return cached;
 
-    this.#internal = { pos, ast };
+    this.#internal = { pos, ast, $decorators: void 0 };
     nodes.set(pos, this);
   }
 
@@ -4456,47 +4550,54 @@ export class Function {
 
   get type() {
     const internal = this.#internal;
-    return constructFunctionType(internal.pos + 84, internal.ast);
+    return constructFunctionType(internal.pos + 108, internal.ast);
+  }
+
+  get decorators() {
+    const internal = this.#internal,
+      cached = internal.$decorators;
+    if (cached !== void 0) return cached;
+    return (internal.$decorators = constructVecDecorator(internal.pos + 8, internal.ast));
   }
 
   get id() {
     const internal = this.#internal;
-    return constructOptionBindingIdentifier(internal.pos + 8, internal.ast);
+    return constructOptionBindingIdentifier(internal.pos + 32, internal.ast);
   }
 
   get generator() {
     const internal = this.#internal;
-    return constructBool(internal.pos + 85, internal.ast);
+    return constructBool(internal.pos + 109, internal.ast);
   }
 
   get async() {
     const internal = this.#internal;
-    return constructBool(internal.pos + 86, internal.ast);
+    return constructBool(internal.pos + 110, internal.ast);
   }
 
   get declare() {
     const internal = this.#internal;
-    return constructBool(internal.pos + 87, internal.ast);
+    return constructBool(internal.pos + 111, internal.ast);
   }
 
   get typeParameters() {
     const internal = this.#internal;
-    return constructOptionBoxTSTypeParameterDeclaration(internal.pos + 40, internal.ast);
+    return constructOptionBoxTSTypeParameterDeclaration(internal.pos + 64, internal.ast);
   }
 
   get params() {
     const internal = this.#internal;
-    return constructBoxFormalParameters(internal.pos + 56, internal.ast);
+    return constructBoxFormalParameters(internal.pos + 80, internal.ast);
   }
 
   get returnType() {
     const internal = this.#internal;
-    return constructOptionBoxTSTypeAnnotation(internal.pos + 64, internal.ast);
+    return constructOptionBoxTSTypeAnnotation(internal.pos + 88, internal.ast);
   }
 
   get body() {
     const internal = this.#internal;
-    return constructOptionBoxFunctionBody(internal.pos + 72, internal.ast);
+    return constructOptionBoxFunctionBody(internal.pos + 96, internal.ast);
   }
 
   toJSON() {
@@ -4504,6 +4605,7 @@ export class Function {
       start: this.start,
       end: this.end,
       type: this.type,
+      decorators: this.decorators,
       id: this.id,
       generator: this.generator,
       async: this.async,
@@ -5365,6 +5467,8 @@ function constructModuleDeclaration(pos, ast) {
       return constructBoxTSExportAssignment(pos + 8, ast);
     case 69:
       return constructBoxTSNamespaceExportDeclaration(pos + 8, ast);
+    case 70:
+      return constructBoxLazyImportDeclaration(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ModuleDeclaration`);
   }
@@ -5613,6 +5717,69 @@ export class ImportDeclaration {
 }
 
 const DebugImportDeclaration = class ImportDeclaration {};
+
+export class LazyImportDeclaration {
+  type = "LazyImportDeclaration";
+  #internal;
+
+  constructor(pos, ast) {
+    if (ast?.token !== TOKEN) constructorError();
+
+    const { nodes } = ast;
+    const cached = nodes.get(pos);
+    if (cached !== void 0) return cached;
+
+    this.#internal = { pos, ast, $specifiers: void 0 };
+    nodes.set(pos, this);
+  }
+
+  get start() {
+    const internal = this.#internal;
+    return constructU32(internal.pos, internal.ast);
+  }
+
+  get end() {
+    const internal = this.#internal;
+    return constructU32(internal.pos + 4, internal.ast);
+  }
+
+  get specifiers() {
+    const internal = this.#internal,
+      cached = internal.$specifiers;
+    if (cached !== void 0) return cached;
+    return (internal.$specifiers = constructOptionVecImportDeclarationSpecifier(
+      internal.pos + 8,
+      internal.ast,
+    ));
+  }
+
+  get source() {
+    const internal = this.#internal;
+    return new StringLiteral(internal.pos + 32, internal.ast);
+  }
+
+  get attributes() {
+    const internal = this.#internal;
+    return constructOptionBoxWithClause(internal.pos + 80, internal.ast);
+  }
+
+  toJSON() {
+    return {
+      type: "LazyImportDeclaration",
+      start: this.start,
+      end: this.end,
+      specifiers: this.specifiers,
+      source: this.source,
+      attributes: this.attributes,
+    };
+  }
+
+  [inspectSymbol]() {
+    return Object.setPrototypeOf(this.toJSON(), DebugLazyImportDeclaration.prototype);
+  }
+}
+
+const DebugLazyImportDeclaration = class LazyImportDeclaration {};
 
 function constructImportPhase(pos, ast) {
   switch (ast.buffer[pos]) {
@@ -5896,7 +6063,7 @@ export class ExportNamedDeclaration {
     const cached = nodes.get(pos);
     if (cached !== void 0) return cached;
 
-    this.#internal = { pos, ast, $specifiers: void 0 };
+    this.#internal = { pos, ast, $decorators: void 0, $specifiers: void 0 };
     nodes.set(pos, this);
   }
 
@@ -5910,31 +6077,38 @@ export class ExportNamedDeclaration {
     return constructU32(internal.pos + 4, internal.ast);
   }
 
+  get decorators() {
+    const internal = this.#internal,
+      cached = internal.$decorators;
+    if (cached !== void 0) return cached;
+    return (internal.$decorators = constructVecDecorator(internal.pos + 8, internal.ast));
+  }
+
   get declaration() {
     const internal = this.#internal;
-    return constructOptionDeclaration(internal.pos + 8, internal.ast);
+    return constructOptionDeclaration(internal.pos + 32, internal.ast);
   }
 
   get specifiers() {
     const internal = this.#internal,
       cached = internal.$specifiers;
     if (cached !== void 0) return cached;
-    return (internal.$specifiers = constructVecExportSpecifier(internal.pos + 24, internal.ast));
+    return (internal.$specifiers = constructVecExportSpecifier(internal.pos + 48, internal.ast));
   }
 
   get source() {
     const internal = this.#internal;
-    return constructOptionStringLiteral(internal.pos + 48, internal.ast);
+    return constructOptionStringLiteral(internal.pos + 72, internal.ast);
   }
 
   get exportKind() {
     const internal = this.#internal;
-    return constructImportOrExportKind(internal.pos + 104, internal.ast);
+    return constructImportOrExportKind(internal.pos + 128, internal.ast);
   }
 
   get attributes() {
     const internal = this.#internal;
-    return constructOptionBoxWithClause(internal.pos + 96, internal.ast);
+    return constructOptionBoxWithClause(internal.pos + 120, internal.ast);
   }
 
   toJSON() {
@@ -5942,6 +6116,7 @@ export class ExportNamedDeclaration {
       type: "ExportNamedDeclaration",
       start: this.start,
       end: this.end,
+      decorators: this.decorators,
       declaration: this.declaration,
       specifiers: this.specifiers,
       source: this.source,
@@ -6207,18 +6382,24 @@ function constructExportDefaultDeclarationKind(pos, ast) {
       return constructBoxTSInstantiationExpression(pos + 8, ast);
     case 39:
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
+    case 40:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxFunction(pos + 8, ast);
     case 65:
       return constructBoxClass(pos + 8, ast);
     case 66:
       return constructBoxTSInterfaceDeclaration(pos + 8, ast);
+    case 67:
+      return constructBoxStructStatement(pos + 8, ast);
     default:
       throw new Error(
         `Unexpected discriminant ${ast.buffer[pos]} for ExportDefaultDeclarationKind`,
@@ -7265,12 +7446,16 @@ function constructJSXExpression(pos, ast) {
       return constructBoxTSInstantiationExpression(pos + 8, ast);
     case 39:
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
+    case 40:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
+    case 51:
+      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return new JSXEmptyExpression(pos + 8, ast);
     default:
@@ -11737,6 +11922,223 @@ export class JSDocUnknownType {
 
 const DebugJSDocUnknownType = class JSDocUnknownType {};
 
+export class StructStatement {
+  type = "StructStatement";
+  #internal;
+
+  constructor(pos, ast) {
+    if (ast?.token !== TOKEN) constructorError();
+
+    const { nodes } = ast;
+    const cached = nodes.get(pos);
+    if (cached !== void 0) return cached;
+
+    this.#internal = { pos, ast, $decorators: void 0 };
+    nodes.set(pos, this);
+  }
+
+  get start() {
+    const internal = this.#internal;
+    return constructU32(internal.pos, internal.ast);
+  }
+
+  get end() {
+    const internal = this.#internal;
+    return constructU32(internal.pos + 4, internal.ast);
+  }
+
+  get decorators() {
+    const internal = this.#internal,
+      cached = internal.$decorators;
+    if (cached !== void 0) return cached;
+    return (internal.$decorators = constructVecDecorator(internal.pos + 8, internal.ast));
+  }
+
+  get id() {
+    const internal = this.#internal;
+    return new BindingIdentifier(internal.pos + 32, internal.ast);
+  }
+
+  get typeParameters() {
+    const internal = this.#internal;
+    return constructOptionBoxTSTypeParameterDeclaration(internal.pos + 64, internal.ast);
+  }
+
+  get body() {
+    const internal = this.#internal;
+    return constructBoxStructBody(internal.pos + 72, internal.ast);
+  }
+
+  toJSON() {
+    return {
+      type: "StructStatement",
+      start: this.start,
+      end: this.end,
+      decorators: this.decorators,
+      id: this.id,
+      typeParameters: this.typeParameters,
+      body: this.body,
+    };
+  }
+
+  [inspectSymbol]() {
+    return Object.setPrototypeOf(this.toJSON(), DebugStructStatement.prototype);
+  }
+}
+
+const DebugStructStatement = class StructStatement {};
+
+export class StructBody {
+  type = "StructBody";
+  #internal;
+
+  constructor(pos, ast) {
+    if (ast?.token !== TOKEN) constructorError();
+
+    const { nodes } = ast;
+    const cached = nodes.get(pos);
+    if (cached !== void 0) return cached;
+
+    this.#internal = { pos, ast, $body: void 0 };
+    nodes.set(pos, this);
+  }
+
+  get start() {
+    const internal = this.#internal;
+    return constructU32(internal.pos, internal.ast);
+  }
+
+  get end() {
+    const internal = this.#internal;
+    return constructU32(internal.pos + 4, internal.ast);
+  }
+
+  get body() {
+    const internal = this.#internal,
+      cached = internal.$body;
+    if (cached !== void 0) return cached;
+    return (internal.$body = constructVecStructElement(internal.pos + 8, internal.ast));
+  }
+
+  toJSON() {
+    return {
+      type: "StructBody",
+      start: this.start,
+      end: this.end,
+      body: this.body,
+    };
+  }
+
+  [inspectSymbol]() {
+    return Object.setPrototypeOf(this.toJSON(), DebugStructBody.prototype);
+  }
+}
+
+const DebugStructBody = class StructBody {};
+
+function constructStructElement(pos, ast) {
+  switch (ast.buffer[pos]) {
+    case 0:
+      return constructBoxPropertyDefinition(pos + 8, ast);
+    case 1:
+      return constructBoxMethodDefinition(pos + 8, ast);
+    default:
+      throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for StructElement`);
+  }
+}
+
+export class ArkUIComponentExpression {
+  type = "ArkUIComponentExpression";
+  #internal;
+
+  constructor(pos, ast) {
+    if (ast?.token !== TOKEN) constructorError();
+
+    const { nodes } = ast;
+    const cached = nodes.get(pos);
+    if (cached !== void 0) return cached;
+
+    this.#internal = { pos, ast, $arguments: void 0, $children: void 0, $chainExpressions: void 0 };
+    nodes.set(pos, this);
+  }
+
+  get start() {
+    const internal = this.#internal;
+    return constructU32(internal.pos, internal.ast);
+  }
+
+  get end() {
+    const internal = this.#internal;
+    return constructU32(internal.pos + 4, internal.ast);
+  }
+
+  get callee() {
+    const internal = this.#internal;
+    return constructExpression(internal.pos + 8, internal.ast);
+  }
+
+  get typeArguments() {
+    const internal = this.#internal;
+    return constructOptionBoxTSTypeParameterInstantiation(internal.pos + 24, internal.ast);
+  }
+
+  get arguments() {
+    const internal = this.#internal,
+      cached = internal.$arguments;
+    if (cached !== void 0) return cached;
+    return (internal.$arguments = constructVecArgument(internal.pos + 32, internal.ast));
+  }
+
+  get children() {
+    const internal = this.#internal,
+      cached = internal.$children;
+    if (cached !== void 0) return cached;
+    return (internal.$children = constructVecArkUIChild(internal.pos + 56, internal.ast));
+  }
+
+  get chainExpressions() {
+    const internal = this.#internal,
+      cached = internal.$chainExpressions;
+    if (cached !== void 0) return cached;
+    return (internal.$chainExpressions = constructVecCallExpression(
+      internal.pos + 80,
+      internal.ast,
+    ));
+  }
+
+  toJSON() {
+    return {
+      type: "ArkUIComponentExpression",
+      start: this.start,
+      end: this.end,
+      callee: this.callee,
+      typeArguments: this.typeArguments,
+      arguments: this.arguments,
+      children: this.children,
+      chainExpressions: this.chainExpressions,
+    };
+  }
+
+  [inspectSymbol]() {
+    return Object.setPrototypeOf(this.toJSON(), DebugArkUIComponentExpression.prototype);
+  }
+}
+
+const DebugArkUIComponentExpression = class ArkUIComponentExpression {};
+
+function constructArkUIChild(pos, ast) {
+  switch (ast.buffer[pos]) {
+    case 0:
+      return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 1:
+      return constructBoxExpression(pos + 8, ast);
+    case 2:
+      return constructBoxStatement(pos + 8, ast);
+    default:
+      throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ArkUIChild`);
+  }
+}
+
 function constructCommentKind(pos, ast) {
   switch (ast.buffer[pos]) {
     case 0:
@@ -12851,6 +13253,10 @@ function constructBoxV8IntrinsicExpression(pos, ast) {
   return new V8IntrinsicExpression(ast.buffer.uint32[pos >> 2], ast);
 }
 
+function constructBoxArkUIComponentExpression(pos, ast) {
+  return new ArkUIComponentExpression(ast.buffer.uint32[pos >> 2], ast);
+}
+
 function constructVecArrayExpressionElement(pos, ast) {
   const { uint32 } = ast.buffer,
     pos32 = pos >> 2;
@@ -12925,6 +13331,15 @@ function constructBoxPrivateFieldExpression(pos, ast) {
   return new PrivateFieldExpression(ast.buffer.uint32[pos >> 2], ast);
 }
 
+function constructBoxLeadingDotMemberExpression(pos, ast) {
+  return new LeadingDotMemberExpression(ast.buffer.uint32[pos >> 2], ast);
+}
+
+function constructOptionExpression(pos, ast) {
+  if (ast.buffer[pos] === 52) return null;
+  return constructExpression(pos, ast);
+}
+
 function constructVecArgument(pos, ast) {
   const { uint32 } = ast.buffer,
     pos32 = pos >> 2;
@@ -12940,7 +13355,7 @@ function constructBoxObjectAssignmentTarget(pos, ast) {
 }
 
 function constructOptionAssignmentTargetMaybeDefault(pos, ast) {
-  if (ast.buffer[pos] === 51) return null;
+  if (ast.buffer[pos] === 52) return null;
   return constructAssignmentTargetMaybeDefault(pos, ast);
 }
 
@@ -12987,11 +13402,6 @@ function constructBoxAssignmentTargetPropertyIdentifier(pos, ast) {
 
 function constructBoxAssignmentTargetPropertyProperty(pos, ast) {
   return new AssignmentTargetPropertyProperty(ast.buffer.uint32[pos >> 2], ast);
-}
-
-function constructOptionExpression(pos, ast) {
-  if (ast.buffer[pos] === 51) return null;
-  return constructExpression(pos, ast);
 }
 
 function constructBoxBlockStatement(pos, ast) {
@@ -13066,6 +13476,10 @@ function constructBoxWithStatement(pos, ast) {
   return new WithStatement(ast.buffer.uint32[pos >> 2], ast);
 }
 
+function constructBoxStructStatement(pos, ast) {
+  return new StructStatement(ast.buffer.uint32[pos >> 2], ast);
+}
+
 function constructBoxVariableDeclaration(pos, ast) {
   return new VariableDeclaration(ast.buffer.uint32[pos >> 2], ast);
 }
@@ -13105,7 +13519,7 @@ function constructVariableDeclarator(pos, ast) {
 }
 
 function constructOptionStatement(pos, ast) {
-  if (ast.buffer[pos] === 70) return null;
+  if (ast.buffer[pos] === 71) return null;
   return constructStatement(pos, ast);
 }
 
@@ -13204,6 +13618,16 @@ function constructVecOptionBindingPattern(pos, ast) {
   return new NodeArray(uint32[pos32], uint32[pos32 + 2], 32, constructOptionBindingPattern, ast);
 }
 
+function constructVecDecorator(pos, ast) {
+  const { uint32 } = ast.buffer,
+    pos32 = pos >> 2;
+  return new NodeArray(uint32[pos32], uint32[pos32 + 2], 24, constructDecorator, ast);
+}
+
+function constructDecorator(pos, ast) {
+  return new Decorator(pos, ast);
+}
+
 function constructOptionBindingIdentifier(pos, ast) {
   if (ast.buffer.uint32[(pos + 8) >> 2] === 0 && ast.buffer.uint32[(pos + 12) >> 2] === 0)
     return null;
@@ -13249,16 +13673,6 @@ function constructVecFormalParameter(pos, ast) {
 
 function constructFormalParameter(pos, ast) {
   return new FormalParameter(pos, ast);
-}
-
-function constructVecDecorator(pos, ast) {
-  const { uint32 } = ast.buffer,
-    pos32 = pos >> 2;
-  return new NodeArray(uint32[pos32], uint32[pos32 + 2], 24, constructDecorator, ast);
-}
-
-function constructDecorator(pos, ast) {
-  return new Decorator(pos, ast);
 }
 
 function constructOptionTSAccessibility(pos, ast) {
@@ -13308,6 +13722,10 @@ function constructBoxTSIndexSignature(pos, ast) {
 
 function constructBoxImportDeclaration(pos, ast) {
   return new ImportDeclaration(ast.buffer.uint32[pos >> 2], ast);
+}
+
+function constructBoxLazyImportDeclaration(pos, ast) {
+  return new LazyImportDeclaration(ast.buffer.uint32[pos >> 2], ast);
 }
 
 function constructBoxExportAllDeclaration(pos, ast) {
@@ -13751,6 +14169,40 @@ function constructOptionTSMappedTypeModifierOperator(pos, ast) {
 
 function constructBoxTSExternalModuleReference(pos, ast) {
   return new TSExternalModuleReference(ast.buffer.uint32[pos >> 2], ast);
+}
+
+function constructBoxStructBody(pos, ast) {
+  return new StructBody(ast.buffer.uint32[pos >> 2], ast);
+}
+
+function constructVecStructElement(pos, ast) {
+  const { uint32 } = ast.buffer,
+    pos32 = pos >> 2;
+  return new NodeArray(uint32[pos32], uint32[pos32 + 2], 16, constructStructElement, ast);
+}
+
+function constructVecArkUIChild(pos, ast) {
+  const { uint32 } = ast.buffer,
+    pos32 = pos >> 2;
+  return new NodeArray(uint32[pos32], uint32[pos32 + 2], 16, constructArkUIChild, ast);
+}
+
+function constructVecCallExpression(pos, ast) {
+  const { uint32 } = ast.buffer,
+    pos32 = pos >> 2;
+  return new NodeArray(uint32[pos32], uint32[pos32 + 2], 64, constructCallExpression, ast);
+}
+
+function constructCallExpression(pos, ast) {
+  return new CallExpression(pos, ast);
+}
+
+function constructBoxExpression(pos, ast) {
+  return constructExpression(ast.buffer.uint32[pos >> 2], ast);
+}
+
+function constructBoxStatement(pos, ast) {
+  return constructStatement(ast.buffer.uint32[pos >> 2], ast);
 }
 
 function constructU64(pos, ast) {

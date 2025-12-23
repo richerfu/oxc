@@ -836,6 +836,7 @@ impl ESTree for Statement<'_> {
             Self::TSGlobalDeclaration(it) => it.serialize(serializer),
             Self::TSImportEqualsDeclaration(it) => it.serialize(serializer),
             Self::ImportDeclaration(it) => it.serialize(serializer),
+            Self::LazyImportDeclaration(it) => it.serialize(serializer),
             Self::ExportAllDeclaration(it) => it.serialize(serializer),
             Self::ExportDefaultDeclaration(it) => it.serialize(serializer),
             Self::ExportNamedDeclaration(it) => it.serialize(serializer),
@@ -1548,6 +1549,7 @@ impl ESTree for ModuleDeclaration<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) {
         match self {
             Self::ImportDeclaration(it) => it.serialize(serializer),
+            Self::LazyImportDeclaration(it) => it.serialize(serializer),
             Self::ExportAllDeclaration(it) => it.serialize(serializer),
             Self::ExportDefaultDeclaration(it) => it.serialize(serializer),
             Self::ExportNamedDeclaration(it) => it.serialize(serializer),
@@ -1616,6 +1618,24 @@ impl ESTree for ImportDeclaration<'_> {
             &crate::serialize::js::ImportDeclarationWithClause(self),
         );
         state.serialize_ts_field("importKind", &self.import_kind);
+        state.serialize_span(self.span);
+        state.end();
+    }
+}
+
+impl ESTree for LazyImportDeclaration<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) {
+        let mut state = serializer.serialize_struct();
+        state.serialize_field("type", &JsonSafeString("LazyImportDeclaration"));
+        state.serialize_field(
+            "specifiers",
+            &crate::serialize::js::LazyImportDeclarationSpecifiers(self),
+        );
+        state.serialize_field("source", &self.source);
+        state.serialize_field(
+            "attributes",
+            &crate::serialize::js::LazyImportDeclarationWithClause(self),
+        );
         state.serialize_span(self.span);
         state.end();
     }

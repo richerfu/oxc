@@ -329,6 +329,7 @@ impl GetAddress for Statement<'_> {
             Self::TSGlobalDeclaration(it) => GetAddress::address(it),
             Self::TSImportEqualsDeclaration(it) => GetAddress::address(it),
             Self::ImportDeclaration(it) => GetAddress::address(it),
+            Self::LazyImportDeclaration(it) => GetAddress::address(it),
             Self::ExportAllDeclaration(it) => GetAddress::address(it),
             Self::ExportDefaultDeclaration(it) => GetAddress::address(it),
             Self::ExportNamedDeclaration(it) => GetAddress::address(it),
@@ -465,6 +466,7 @@ impl GetAddress for ModuleDeclaration<'_> {
     fn address(&self) -> Address {
         match self {
             Self::ImportDeclaration(it) => GetAddress::address(it),
+            Self::LazyImportDeclaration(it) => GetAddress::address(it),
             Self::ExportAllDeclaration(it) => GetAddress::address(it),
             Self::ExportDefaultDeclaration(it) => GetAddress::address(it),
             Self::ExportNamedDeclaration(it) => GetAddress::address(it),

@@ -320,6 +320,26 @@ impl ESTree for ImportDeclarationSpecifiers<'_, '_> {
     }
 }
 
+#[ast_meta]
+#[estree(
+    ts_type = "Array<ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier> | null",
+    raw_deser = "
+        const specifiers = DESER[Option<Vec<ImportDeclarationSpecifier>>](POS_OFFSET.specifiers);
+        specifiers === null ? null : specifiers
+    "
+)]
+pub struct LazyImportDeclarationSpecifiers<'a, 'b>(pub &'b LazyImportDeclaration<'a>);
+
+impl ESTree for LazyImportDeclarationSpecifiers<'_, '_> {
+    fn serialize<S: Serializer>(&self, serializer: S) {
+        if let Some(specifiers) = &self.0.specifiers {
+            specifiers.serialize(serializer);
+        } else {
+            EmptyArray(()).serialize(serializer);
+        }
+    }
+}
+
 // Serializers for `with_clause` field of `ImportDeclaration`, `ExportNamedDeclaration`,
 // and `ExportAllDeclaration` (which are renamed to `attributes` in ESTree AST).
 //
@@ -379,6 +399,26 @@ impl ESTree for ExportNamedDeclarationWithClause<'_, '_> {
 pub struct ExportAllDeclarationWithClause<'a, 'b>(pub &'b ExportAllDeclaration<'a>);
 
 impl ESTree for ExportAllDeclarationWithClause<'_, '_> {
+    fn serialize<S: Serializer>(&self, serializer: S) {
+        if let Some(with_clause) = &self.0.with_clause {
+            with_clause.with_entries.serialize(serializer);
+        } else {
+            EmptyArray(()).serialize(serializer);
+        }
+    }
+}
+
+#[ast_meta]
+#[estree(
+    ts_type = "Array<ImportAttribute>",
+    raw_deser = "
+        const withClause = DESER[Option<Box<WithClause>>](POS_OFFSET.with_clause);
+        withClause === null ? [] : withClause.attributes
+    "
+)]
+pub struct LazyImportDeclarationWithClause<'a, 'b>(pub &'b LazyImportDeclaration<'a>);
+
+impl ESTree for LazyImportDeclarationWithClause<'_, '_> {
     fn serialize<S: Serializer>(&self, serializer: S) {
         if let Some(with_clause) = &self.0.with_clause {
             with_clause.with_entries.serialize(serializer);

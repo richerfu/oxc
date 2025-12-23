@@ -2434,6 +2434,9 @@ impl<'new_alloc> CloneIn<'new_alloc> for Statement<'_> {
             Self::ImportDeclaration(it) => {
                 Statement::ImportDeclaration(CloneIn::clone_in(it, allocator))
             }
+            Self::LazyImportDeclaration(it) => {
+                Statement::LazyImportDeclaration(CloneIn::clone_in(it, allocator))
+            }
             Self::ExportAllDeclaration(it) => {
                 Statement::ExportAllDeclaration(CloneIn::clone_in(it, allocator))
             }
@@ -2540,6 +2543,9 @@ impl<'new_alloc> CloneIn<'new_alloc> for Statement<'_> {
             ),
             Self::ImportDeclaration(it) => {
                 Statement::ImportDeclaration(CloneIn::clone_in_with_semantic_ids(it, allocator))
+            }
+            Self::LazyImportDeclaration(it) => {
+                Statement::LazyImportDeclaration(CloneIn::clone_in_with_semantic_ids(it, allocator))
             }
             Self::ExportAllDeclaration(it) => {
                 Statement::ExportAllDeclaration(CloneIn::clone_in_with_semantic_ids(it, allocator))
@@ -4149,6 +4155,9 @@ impl<'new_alloc> CloneIn<'new_alloc> for ModuleDeclaration<'_> {
             Self::ImportDeclaration(it) => {
                 ModuleDeclaration::ImportDeclaration(CloneIn::clone_in(it, allocator))
             }
+            Self::LazyImportDeclaration(it) => {
+                ModuleDeclaration::LazyImportDeclaration(CloneIn::clone_in(it, allocator))
+            }
             Self::ExportAllDeclaration(it) => {
                 ModuleDeclaration::ExportAllDeclaration(CloneIn::clone_in(it, allocator))
             }
@@ -4170,6 +4179,9 @@ impl<'new_alloc> CloneIn<'new_alloc> for ModuleDeclaration<'_> {
     fn clone_in_with_semantic_ids(&self, allocator: &'new_alloc Allocator) -> Self::Cloned {
         match self {
             Self::ImportDeclaration(it) => ModuleDeclaration::ImportDeclaration(
+                CloneIn::clone_in_with_semantic_ids(it, allocator),
+            ),
+            Self::LazyImportDeclaration(it) => ModuleDeclaration::LazyImportDeclaration(
                 CloneIn::clone_in_with_semantic_ids(it, allocator),
             ),
             Self::ExportAllDeclaration(it) => ModuleDeclaration::ExportAllDeclaration(
@@ -4287,6 +4299,28 @@ impl<'new_alloc> CloneIn<'new_alloc> for ImportDeclaration<'_> {
             phase: CloneIn::clone_in_with_semantic_ids(&self.phase, allocator),
             with_clause: CloneIn::clone_in_with_semantic_ids(&self.with_clause, allocator),
             import_kind: CloneIn::clone_in_with_semantic_ids(&self.import_kind, allocator),
+        }
+    }
+}
+
+impl<'new_alloc> CloneIn<'new_alloc> for LazyImportDeclaration<'_> {
+    type Cloned = LazyImportDeclaration<'new_alloc>;
+
+    fn clone_in(&self, allocator: &'new_alloc Allocator) -> Self::Cloned {
+        LazyImportDeclaration {
+            span: CloneIn::clone_in(&self.span, allocator),
+            specifiers: CloneIn::clone_in(&self.specifiers, allocator),
+            source: CloneIn::clone_in(&self.source, allocator),
+            with_clause: CloneIn::clone_in(&self.with_clause, allocator),
+        }
+    }
+
+    fn clone_in_with_semantic_ids(&self, allocator: &'new_alloc Allocator) -> Self::Cloned {
+        LazyImportDeclaration {
+            span: CloneIn::clone_in_with_semantic_ids(&self.span, allocator),
+            specifiers: CloneIn::clone_in_with_semantic_ids(&self.specifiers, allocator),
+            source: CloneIn::clone_in_with_semantic_ids(&self.source, allocator),
+            with_clause: CloneIn::clone_in_with_semantic_ids(&self.with_clause, allocator),
         }
     }
 }

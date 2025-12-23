@@ -2374,6 +2374,8 @@ pub enum ModuleDeclaration<'a> {
     /// `import hello from './world.js';`
     /// `import * as t from './world.js';`
     ImportDeclaration(Box<'a, ImportDeclaration<'a>>) = 64,
+    /// `import lazy { c } from './C';` (ArkUI lazy import)
+    LazyImportDeclaration(Box<'a, LazyImportDeclaration<'a>>) = 70,
     /// `export * as numbers from '../numbers.js'`
     ExportAllDeclaration(Box<'a, ExportAllDeclaration<'a>>) = 65,
     /// `export default 5;`
@@ -2393,6 +2395,7 @@ pub enum ModuleDeclaration<'a> {
 macro_rules! match_module_declaration {
     ($ty:ident) => {
         $ty::ImportDeclaration(_)
+            | $ty::LazyImportDeclaration(_)
             | $ty::ExportAllDeclaration(_)
             | $ty::ExportDefaultDeclaration(_)
             | $ty::ExportNamedDeclaration(_)
@@ -2493,6 +2496,27 @@ pub struct ImportDeclaration<'a> {
     /// `import type { foo } from 'bar'`
     #[ts]
     pub import_kind: ImportOrExportKind,
+}
+
+/// ArkUI Lazy Import Declaration
+///
+/// ## Example
+/// ```ets
+/// import lazy { c } from './C';
+/// ```
+///
+#[ast(visit)]
+#[derive(Debug)]
+#[generate_derive(CloneIn, Dummy, TakeIn, GetSpan, GetSpanMut, ContentEq, ESTree, UnstableAddress)]
+pub struct LazyImportDeclaration<'a> {
+    pub span: Span,
+    /// Import specifiers (e.g., `{ c }`)
+    #[estree(via = ImportDeclarationSpecifiers)]
+    pub specifiers: Option<Vec<'a, ImportDeclarationSpecifier<'a>>>,
+    pub source: StringLiteral<'a>,
+    /// Some(vec![]) for empty assertion
+    #[estree(rename = "attributes", via = LazyImportDeclarationWithClause)]
+    pub with_clause: Option<Box<'a, WithClause<'a>>>,
 }
 
 /// Import Phase

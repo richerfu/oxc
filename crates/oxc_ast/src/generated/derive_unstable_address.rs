@@ -179,6 +179,8 @@ impl UnstableAddress for ImportExpression<'_> {}
 
 impl UnstableAddress for ImportDeclaration<'_> {}
 
+impl UnstableAddress for LazyImportDeclaration<'_> {}
+
 impl UnstableAddress for ImportSpecifier<'_> {}
 
 impl UnstableAddress for ImportDefaultSpecifier<'_> {}

@@ -559,6 +559,11 @@ pub trait VisitMut<'a>: Sized {
     }
 
     #[inline]
+    fn visit_lazy_import_declaration(&mut self, it: &mut LazyImportDeclaration<'a>) {
+        walk_lazy_import_declaration(self, it);
+    }
+
+    #[inline]
     fn visit_import_declaration_specifier(&mut self, it: &mut ImportDeclarationSpecifier<'a>) {
         walk_import_declaration_specifier(self, it);
     }
@@ -2812,6 +2817,9 @@ pub mod walk_mut {
         // No `AstType` for this type
         match it {
             ModuleDeclaration::ImportDeclaration(it) => visitor.visit_import_declaration(it),
+            ModuleDeclaration::LazyImportDeclaration(it) => {
+                visitor.visit_lazy_import_declaration(it)
+            }
             ModuleDeclaration::ExportAllDeclaration(it) => visitor.visit_export_all_declaration(it),
             ModuleDeclaration::ExportDefaultDeclaration(it) => {
                 visitor.visit_export_default_declaration(it)
@@ -2866,6 +2874,24 @@ pub mod walk_mut {
         it: &mut ImportDeclaration<'a>,
     ) {
         let kind = AstType::ImportDeclaration;
+        visitor.enter_node(kind);
+        visitor.visit_span(&mut it.span);
+        if let Some(specifiers) = &mut it.specifiers {
+            visitor.visit_import_declaration_specifiers(specifiers);
+        }
+        visitor.visit_string_literal(&mut it.source);
+        if let Some(with_clause) = &mut it.with_clause {
+            visitor.visit_with_clause(with_clause);
+        }
+        visitor.leave_node(kind);
+    }
+
+    #[inline]
+    pub fn walk_lazy_import_declaration<'a, V: VisitMut<'a>>(
+        visitor: &mut V,
+        it: &mut LazyImportDeclaration<'a>,
+    ) {
+        let kind = AstType::LazyImportDeclaration;
         visitor.enter_node(kind);
         visitor.visit_span(&mut it.span);
         if let Some(specifiers) = &mut it.specifiers {

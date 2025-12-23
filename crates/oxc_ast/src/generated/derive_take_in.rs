@@ -221,6 +221,8 @@ impl<'a> TakeIn<'a> for ImportExpression<'a> {}
 
 impl<'a> TakeIn<'a> for ImportDeclaration<'a> {}
 
+impl<'a> TakeIn<'a> for LazyImportDeclaration<'a> {}
+
 impl<'a> TakeIn<'a> for ImportDeclarationSpecifier<'a> {}
 
 impl<'a> TakeIn<'a> for ImportSpecifier<'a> {}

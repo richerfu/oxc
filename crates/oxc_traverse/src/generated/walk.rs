@@ -1434,6 +1434,7 @@ unsafe fn walk_statement<'a, State, Tr: Traverse<'a, State>>(
             walk_declaration(traverser, node as *mut _, ctx)
         }
         Statement::ImportDeclaration(_)
+        | Statement::LazyImportDeclaration(_)
         | Statement::ExportAllDeclaration(_)
         | Statement::ExportDefaultDeclaration(_)
         | Statement::ExportNamedDeclaration(_)
@@ -2758,6 +2759,9 @@ unsafe fn walk_module_declaration<'a, State, Tr: Traverse<'a, State>>(
         ModuleDeclaration::ImportDeclaration(node) => {
             walk_import_declaration(traverser, (&mut **node) as *mut _, ctx)
         }
+        ModuleDeclaration::LazyImportDeclaration(node) => {
+            walk_lazy_import_declaration(traverser, (&mut **node) as *mut _, ctx)
+        }
         ModuleDeclaration::ExportAllDeclaration(node) => {
             walk_export_all_declaration(traverser, (&mut **node) as *mut _, ctx)
         }
@@ -2870,6 +2874,41 @@ unsafe fn walk_import_declaration<'a, State, Tr: Traverse<'a, State>>(
     }
     ctx.pop_stack(pop_token);
     traverser.exit_import_declaration(&mut *node, ctx);
+}
+
+unsafe fn walk_lazy_import_declaration<'a, State, Tr: Traverse<'a, State>>(
+    traverser: &mut Tr,
+    node: *mut LazyImportDeclaration<'a>,
+    ctx: &mut TraverseCtx<'a, State>,
+) {
+    traverser.enter_lazy_import_declaration(&mut *node, ctx);
+    let pop_token = ctx.push_stack(Ancestor::LazyImportDeclarationSpecifiers(
+        ancestor::LazyImportDeclarationWithoutSpecifiers(node, PhantomData),
+    ));
+    if let Some(field) = &mut *((node as *mut u8)
+        .add(ancestor::OFFSET_LAZY_IMPORT_DECLARATION_SPECIFIERS)
+        as *mut Option<Vec<ImportDeclarationSpecifier>>)
+    {
+        for item in field.iter_mut() {
+            walk_import_declaration_specifier(traverser, item as *mut _, ctx);
+        }
+    }
+    ctx.retag_stack(AncestorType::LazyImportDeclarationSource);
+    walk_string_literal(
+        traverser,
+        (node as *mut u8).add(ancestor::OFFSET_LAZY_IMPORT_DECLARATION_SOURCE)
+            as *mut StringLiteral,
+        ctx,
+    );
+    if let Some(field) = &mut *((node as *mut u8)
+        .add(ancestor::OFFSET_LAZY_IMPORT_DECLARATION_WITH_CLAUSE)
+        as *mut Option<Box<WithClause>>)
+    {
+        ctx.retag_stack(AncestorType::LazyImportDeclarationWithClause);
+        walk_with_clause(traverser, (&mut **field) as *mut _, ctx);
+    }
+    ctx.pop_stack(pop_token);
+    traverser.exit_lazy_import_declaration(&mut *node, ctx);
 }
 
 unsafe fn walk_import_declaration_specifier<'a, State, Tr: Traverse<'a, State>>(

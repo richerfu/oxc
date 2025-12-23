@@ -771,6 +771,14 @@ const _: () = {
     assert!(offset_of!(ImportDeclaration, with_clause) == 80);
     assert!(offset_of!(ImportDeclaration, import_kind) == 89);
 
+    // Padding: 0 bytes
+    assert!(size_of::<LazyImportDeclaration>() == 88);
+    assert!(align_of::<LazyImportDeclaration>() == 8);
+    assert!(offset_of!(LazyImportDeclaration, span) == 0);
+    assert!(offset_of!(LazyImportDeclaration, specifiers) == 8);
+    assert!(offset_of!(LazyImportDeclaration, source) == 32);
+    assert!(offset_of!(LazyImportDeclaration, with_clause) == 80);
+
     assert!(size_of::<ImportPhase>() == 1);
     assert!(align_of::<ImportPhase>() == 1);
 
@@ -2428,6 +2436,14 @@ const _: () = if cfg!(target_family = "wasm") || align_of::<u64>() == 8 {
     assert!(offset_of!(ImportDeclaration, phase) == 56);
     assert!(offset_of!(ImportDeclaration, with_clause) == 52);
     assert!(offset_of!(ImportDeclaration, import_kind) == 57);
+
+    // Padding: 0 bytes
+    assert!(size_of::<LazyImportDeclaration>() == 56);
+    assert!(align_of::<LazyImportDeclaration>() == 4);
+    assert!(offset_of!(LazyImportDeclaration, span) == 0);
+    assert!(offset_of!(LazyImportDeclaration, specifiers) == 8);
+    assert!(offset_of!(LazyImportDeclaration, source) == 24);
+    assert!(offset_of!(LazyImportDeclaration, with_clause) == 52);
 
     assert!(size_of::<ImportPhase>() == 1);
     assert!(align_of::<ImportPhase>() == 1);

@@ -63,6 +63,7 @@ pub enum Kind {
     Accessor, // keyword from https://github.com/tc39/proposal-decorators
     Source,   // import.source https://github.com/tc39/proposal-source-phase-imports
     Defer,    // import.defer https://github.com/tc39/proposal-defer-import-eval
+    Lazy,     // import.lazy for ArkUI lazy imports
     // TypeScript Contextual Keywords
     Abstract,
     As,
@@ -387,7 +388,7 @@ impl Kind {
             Async | From | Get | Meta | Of | Set | Target | Accessor | Abstract | As | Asserts | Assert
             | Any | Boolean | Constructor | Declare | Infer | Intrinsic | Is | KeyOf | Module | Namespace
             | Never | Out | Readonly | Require | Number | Object | Satisfies | String | Symbol | Type
-            | Undefined | Unique | Unknown | Using | Global | BigInt | Override | Source | Defer | Struct
+            | Undefined | Unique | Unknown | Using | Global | BigInt | Override | Source | Defer | Lazy | Struct
         )
     }
 
@@ -475,6 +476,7 @@ impl Kind {
             "while" => While,
             "yield" => Yield,
             "defer" => Defer,
+            "lazy" => Lazy,
 
             "assert" => Assert,
             "bigint" => BigInt,
@@ -701,6 +703,7 @@ impl Kind {
             Unknown => "unknown",
             Global => "global",
             BigInt => "bigint",
+            Lazy => "lazy",
         }
     }
 }

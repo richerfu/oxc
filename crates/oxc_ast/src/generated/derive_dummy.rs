@@ -1393,6 +1393,20 @@ impl<'a> Dummy<'a> for ImportDeclaration<'a> {
     }
 }
 
+impl<'a> Dummy<'a> for LazyImportDeclaration<'a> {
+    /// Create a dummy [`LazyImportDeclaration`].
+    ///
+    /// Does not allocate any data into arena.
+    fn dummy(allocator: &'a Allocator) -> Self {
+        Self {
+            span: Dummy::dummy(allocator),
+            specifiers: Dummy::dummy(allocator),
+            source: Dummy::dummy(allocator),
+            with_clause: Dummy::dummy(allocator),
+        }
+    }
+}
+
 impl<'a> Dummy<'a> for ImportPhase {
     /// Create a dummy [`ImportPhase`].
     ///

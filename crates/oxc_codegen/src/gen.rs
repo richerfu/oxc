@@ -149,6 +149,103 @@ impl Gen for Statement<'_> {
             Self::LabeledStatement(stmt) => stmt.print(p, ctx),
             Self::EmptyStatement(stmt) => stmt.print(p, ctx),
             Self::ImportDeclaration(decl) => decl.print(p, ctx),
+            Self::LazyImportDeclaration(decl) => {
+                p.print_comments_at(decl.span.start);
+                p.print_indent();
+                p.add_source_mapping(decl.span);
+                p.print_space_before_identifier();
+                p.print_str("import lazy");
+                if let Some(specifiers) = &decl.specifiers {
+                    if specifiers.is_empty() {
+                        p.print_soft_space();
+                        p.print_str("{}");
+                        p.print_soft_space();
+                        p.print_str("from");
+                        p.print_soft_space();
+                        p.print_string_literal(&decl.source, false);
+                        if let Some(with_clause) = &decl.with_clause {
+                            p.print_hard_space();
+                            with_clause.print(p, ctx);
+                        }
+                        p.print_semicolon_after_statement();
+                        return;
+                    }
+
+                    let mut in_block = false;
+                    for (index, specifier) in specifiers.iter().enumerate() {
+                        match specifier {
+                            ImportDeclarationSpecifier::ImportDefaultSpecifier(spec) => {
+                                if in_block {
+                                    p.print_soft_space();
+                                    p.print_str("},");
+                                    in_block = false;
+                                } else if index == 0 {
+                                    p.print_hard_space();
+                                } else {
+                                    p.print_comma();
+                                    p.print_soft_space();
+                                }
+                                spec.local.print(p, ctx);
+                                if index == specifiers.len() - 1 {
+                                    p.print_hard_space();
+                                }
+                            }
+                            ImportDeclarationSpecifier::ImportNamespaceSpecifier(spec) => {
+                                if in_block {
+                                    p.print_soft_space();
+                                    p.print_str("},");
+                                    in_block = false;
+                                } else if index == 0 {
+                                    p.print_soft_space();
+                                } else {
+                                    p.print_comma();
+                                    p.print_soft_space();
+                                }
+                                p.print_ascii_byte(b'*');
+                                p.print_soft_space();
+                                p.print_str("as ");
+                                spec.local.print(p, ctx);
+                                p.print_hard_space();
+                            }
+                            ImportDeclarationSpecifier::ImportSpecifier(spec) => {
+                                if in_block {
+                                    p.print_comma();
+                                    p.print_soft_space();
+                                } else {
+                                    if index != 0 {
+                                        p.print_comma();
+                                    }
+                                    in_block = true;
+                                    p.print_soft_space();
+                                    p.print_ascii_byte(b'{');
+                                    p.print_soft_space();
+                                }
+
+                                spec.imported.print(p, ctx);
+                                let local_name = p.get_binding_identifier_name(&spec.local);
+                                let imported_name = get_module_export_name(&spec.imported, p);
+                                if imported_name != local_name {
+                                    p.print_str(" as ");
+                                    spec.local.print(p, ctx);
+                                }
+                            }
+                        }
+                    }
+                    if in_block {
+                        p.print_soft_space();
+                        p.print_ascii_byte(b'}');
+                        p.print_soft_space();
+                    }
+                    p.print_str("from");
+                }
+                p.print_soft_space();
+                p.print_string_literal(&decl.source, false);
+                if let Some(with_clause) = &decl.with_clause {
+                    p.print_soft_space();
+                    with_clause.print(p, ctx);
+                }
+                p.print_semicolon_after_statement();
+            }
             Self::ExportNamedDeclaration(decl) => decl.print(p, ctx),
             Self::ExportDefaultDeclaration(decl) => decl.print(p, ctx),
             Self::ExportAllDeclaration(decl) => decl.print(p, ctx),

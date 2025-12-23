@@ -186,6 +186,7 @@ fn should_attach_jsdoc(kind: &AstKind) -> bool {
         | AstKind::ExportDefaultDeclaration(_)
         | AstKind::ExportNamedDeclaration(_)
         | AstKind::ImportDeclaration(_)
+        | AstKind::LazyImportDeclaration(_)
 
         // Maybe JSX, TS related kinds should be added?
     )

@@ -134,12 +134,16 @@ function deserializeExpression(pos) {
       return deserializeBoxTSInstantiationExpression(pos + 8);
     case 39:
       return deserializeBoxV8IntrinsicExpression(pos + 8);
+    case 40:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
     case 48:
       return deserializeBoxComputedMemberExpression(pos + 8);
     case 49:
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for Expression`);
   }
@@ -312,12 +316,16 @@ function deserializeArrayExpressionElement(pos) {
       return deserializeBoxTSInstantiationExpression(pos + 8);
     case 39:
       return deserializeBoxV8IntrinsicExpression(pos + 8);
+    case 40:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
     case 48:
       return deserializeBoxComputedMemberExpression(pos + 8);
     case 49:
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     case 64:
       return deserializeBoxSpreadElement(pos + 8);
     case 65:
@@ -462,12 +470,16 @@ function deserializePropertyKey(pos) {
       return deserializeBoxTSInstantiationExpression(pos + 8);
     case 39:
       return deserializeBoxV8IntrinsicExpression(pos + 8);
+    case 40:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
     case 48:
       return deserializeBoxComputedMemberExpression(pos + 8);
     case 49:
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     case 64:
       return deserializeBoxIdentifierName(pos + 8);
     case 65:
@@ -611,6 +623,27 @@ function deserializePrivateFieldExpression(pos) {
     });
   node.object = deserializeExpression(pos + 8);
   node.property = deserializePrivateIdentifier(pos + 24);
+  node.computed = false;
+  parent = previousParent;
+  return node;
+}
+
+function deserializeLeadingDotMemberExpression(pos) {
+  let start = deserializeU32(pos),
+    end = deserializeU32(pos + 4),
+    previousParent = parent,
+    node = (parent = {
+      type: "MemberExpression",
+      property: null,
+      optional: deserializeBool(pos + 48),
+      rest: null,
+      computed: null,
+      start,
+      end,
+      parent,
+    });
+  node.property = deserializeIdentifierName(pos + 8);
+  node.rest = deserializeOptionExpression(pos + 32);
   node.computed = false;
   parent = previousParent;
   return node;
@@ -769,12 +802,16 @@ function deserializeArgument(pos) {
       return deserializeBoxTSInstantiationExpression(pos + 8);
     case 39:
       return deserializeBoxV8IntrinsicExpression(pos + 8);
+    case 40:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
     case 48:
       return deserializeBoxComputedMemberExpression(pos + 8);
     case 49:
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     case 64:
       return deserializeBoxSpreadElement(pos + 8);
     default:
@@ -938,6 +975,8 @@ function deserializeAssignmentTarget(pos) {
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for AssignmentTarget`);
   }
@@ -961,6 +1000,8 @@ function deserializeSimpleAssignmentTarget(pos) {
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for SimpleAssignmentTarget`);
   }
@@ -1044,6 +1085,8 @@ function deserializeAssignmentTargetMaybeDefault(pos) {
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for AssignmentTargetMaybeDefault`);
   }
@@ -1220,6 +1263,8 @@ function deserializeChainElement(pos) {
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for ChainElement`);
   }
@@ -1276,10 +1321,12 @@ function deserializeStatement(pos) {
       return deserializeBoxThrowStatement(pos + 8);
     case 15:
       return deserializeBoxTryStatement(pos + 8);
-    case 16:
-      return deserializeBoxWhileStatement(pos + 8);
     case 17:
+      return deserializeBoxWhileStatement(pos + 8);
+    case 18:
       return deserializeBoxWithStatement(pos + 8);
+    case 19:
+      return deserializeBoxStructStatement(pos + 8);
     case 32:
       return deserializeBoxVariableDeclaration(pos + 8);
     case 33:
@@ -1310,6 +1357,8 @@ function deserializeStatement(pos) {
       return deserializeBoxTSExportAssignment(pos + 8);
     case 69:
       return deserializeBoxTSNamespaceExportDeclaration(pos + 8);
+    case 70:
+      return deserializeBoxLazyImportDeclaration(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for Statement`);
   }
@@ -1622,12 +1671,16 @@ function deserializeForStatementInit(pos) {
       return deserializeBoxTSInstantiationExpression(pos + 8);
     case 39:
       return deserializeBoxV8IntrinsicExpression(pos + 8);
+    case 40:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
     case 48:
       return deserializeBoxComputedMemberExpression(pos + 8);
     case 49:
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     case 64:
       return deserializeBoxVariableDeclaration(pos + 8);
     default:
@@ -1679,6 +1732,8 @@ function deserializeForStatementLeft(pos) {
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for ForStatementLeft`);
   }
@@ -2012,10 +2067,10 @@ function deserializeFunction(pos) {
     end = deserializeU32(pos + 4),
     previousParent = parent,
     node = (parent = {
-      type: deserializeFunctionType(pos + 84),
+      type: deserializeFunctionType(pos + 108),
       id: null,
-      generator: deserializeBool(pos + 85),
-      async: deserializeBool(pos + 86),
+      generator: deserializeBool(pos + 109),
+      async: deserializeBool(pos + 110),
       params: null,
       body: null,
       expression: null,
@@ -2023,10 +2078,10 @@ function deserializeFunction(pos) {
       end,
       parent,
     }),
-    params = deserializeBoxFormalParameters(pos + 56);
-  node.id = deserializeOptionBindingIdentifier(pos + 8);
+    params = deserializeBoxFormalParameters(pos + 80);
+  node.id = deserializeOptionBindingIdentifier(pos + 32);
   node.params = params;
-  node.body = deserializeOptionBoxFunctionBody(pos + 72);
+  node.body = deserializeOptionBoxFunctionBody(pos + 96);
   node.expression = false;
   parent = previousParent;
   return node;
@@ -2388,6 +2443,29 @@ function deserializeImportDeclaration(pos) {
   return node;
 }
 
+function deserializeLazyImportDeclaration(pos) {
+  let start = deserializeU32(pos),
+    end = deserializeU32(pos + 4),
+    previousParent = parent,
+    node = (parent = {
+      type: "LazyImportDeclaration",
+      specifiers: null,
+      source: null,
+      attributes: null,
+      start,
+      end,
+      parent,
+    }),
+    specifiers = deserializeOptionVecImportDeclarationSpecifier(pos + 8);
+  specifiers === null && (specifiers = []);
+  let withClause = deserializeOptionBoxWithClause(pos + 80);
+  node.specifiers = specifiers;
+  node.source = deserializeStringLiteral(pos + 32);
+  node.attributes = withClause === null ? [] : withClause.attributes;
+  parent = previousParent;
+  return node;
+}
+
 function deserializeImportPhase(pos) {
   switch (uint8[pos]) {
     case 0:
@@ -2509,10 +2587,10 @@ function deserializeExportNamedDeclaration(pos) {
       end,
       parent,
     }),
-    withClause = deserializeOptionBoxWithClause(pos + 96);
-  node.declaration = deserializeOptionDeclaration(pos + 8);
-  node.specifiers = deserializeVecExportSpecifier(pos + 24);
-  node.source = deserializeOptionStringLiteral(pos + 48);
+    withClause = deserializeOptionBoxWithClause(pos + 120);
+  node.declaration = deserializeOptionDeclaration(pos + 32);
+  node.specifiers = deserializeVecExportSpecifier(pos + 48);
+  node.source = deserializeOptionStringLiteral(pos + 72);
   node.attributes = withClause === null ? [] : withClause.attributes;
   parent = previousParent;
   return node;
@@ -2655,18 +2733,24 @@ function deserializeExportDefaultDeclarationKind(pos) {
       return deserializeBoxTSInstantiationExpression(pos + 8);
     case 39:
       return deserializeBoxV8IntrinsicExpression(pos + 8);
+    case 40:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
     case 48:
       return deserializeBoxComputedMemberExpression(pos + 8);
     case 49:
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     case 64:
       return deserializeBoxFunction(pos + 8);
     case 65:
       return deserializeBoxClass(pos + 8);
     case 66:
       return deserializeBoxTSInterfaceDeclaration(pos + 8);
+    case 67:
+      return deserializeBoxStructStatement(pos + 8);
     default:
       throw Error(`Unexpected discriminant ${uint8[pos]} for ExportDefaultDeclarationKind`);
   }
@@ -3135,12 +3219,16 @@ function deserializeJSXExpression(pos) {
       return deserializeBoxTSInstantiationExpression(pos + 8);
     case 39:
       return deserializeBoxV8IntrinsicExpression(pos + 8);
+    case 40:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
     case 48:
       return deserializeBoxComputedMemberExpression(pos + 8);
     case 49:
       return deserializeBoxStaticMemberExpression(pos + 8);
     case 50:
       return deserializeBoxPrivateFieldExpression(pos + 8);
+    case 51:
+      return deserializeBoxLeadingDotMemberExpression(pos + 8);
     case 64:
       return deserializeJSXEmptyExpression(pos + 8);
     default:
@@ -4937,6 +5025,88 @@ function deserializeJSDocUnknownType(pos) {
   };
 }
 
+function deserializeStructStatement(pos) {
+  let start = deserializeU32(pos),
+    end = deserializeU32(pos + 4),
+    previousParent = parent,
+    node = (parent = {
+      type: "StructStatement",
+      decorators: null,
+      id: null,
+      body: null,
+      start,
+      end,
+      parent,
+    });
+  node.decorators = deserializeVecDecorator(pos + 8);
+  node.id = deserializeBindingIdentifier(pos + 32);
+  node.body = deserializeBoxStructBody(pos + 72);
+  parent = previousParent;
+  return node;
+}
+
+function deserializeStructBody(pos) {
+  let start = deserializeU32(pos),
+    end = deserializeU32(pos + 4),
+    previousParent = parent,
+    node = (parent = {
+      type: "StructBody",
+      body: null,
+      start,
+      end,
+      parent,
+    });
+  node.body = deserializeVecStructElement(pos + 8);
+  parent = previousParent;
+  return node;
+}
+
+function deserializeStructElement(pos) {
+  switch (uint8[pos]) {
+    case 0:
+      return deserializeBoxPropertyDefinition(pos + 8);
+    case 1:
+      return deserializeBoxMethodDefinition(pos + 8);
+    default:
+      throw Error(`Unexpected discriminant ${uint8[pos]} for StructElement`);
+  }
+}
+
+function deserializeArkUIComponentExpression(pos) {
+  let start = deserializeU32(pos),
+    end = deserializeU32(pos + 4),
+    previousParent = parent,
+    node = (parent = {
+      type: "ArkUIComponentExpression",
+      callee: null,
+      arguments: null,
+      children: null,
+      chainExpressions: null,
+      start,
+      end,
+      parent,
+    });
+  node.callee = deserializeExpression(pos + 8);
+  node.arguments = deserializeVecArgument(pos + 32);
+  node.children = deserializeVecArkUIChild(pos + 56);
+  node.chainExpressions = deserializeVecCallExpression(pos + 80);
+  parent = previousParent;
+  return node;
+}
+
+function deserializeArkUIChild(pos) {
+  switch (uint8[pos]) {
+    case 0:
+      return deserializeBoxArkUIComponentExpression(pos + 8);
+    case 1:
+      return deserializeBoxExpression(pos + 8);
+    case 2:
+      return deserializeBoxStatement(pos + 8);
+    default:
+      throw Error(`Unexpected discriminant ${uint8[pos]} for ArkUIChild`);
+  }
+}
+
 function deserializeCommentKind(pos) {
   switch (uint8[pos]) {
     case 0:
@@ -5589,6 +5759,10 @@ function deserializeBoxV8IntrinsicExpression(pos) {
   return deserializeV8IntrinsicExpression(uint32[pos >> 2]);
 }
 
+function deserializeBoxArkUIComponentExpression(pos) {
+  return deserializeArkUIComponentExpression(uint32[pos >> 2]);
+}
+
 function deserializeVecArrayExpressionElement(pos) {
   let arr = [],
     pos32 = pos >> 2;
@@ -5683,6 +5857,15 @@ function deserializeBoxPrivateFieldExpression(pos) {
   return deserializePrivateFieldExpression(uint32[pos >> 2]);
 }
 
+function deserializeBoxLeadingDotMemberExpression(pos) {
+  return deserializeLeadingDotMemberExpression(uint32[pos >> 2]);
+}
+
+function deserializeOptionExpression(pos) {
+  if (uint8[pos] === 52) return null;
+  return deserializeExpression(pos);
+}
+
 function deserializeVecArgument(pos) {
   let arr = [],
     pos32 = pos >> 2;
@@ -5704,7 +5887,7 @@ function deserializeBoxObjectAssignmentTarget(pos) {
 }
 
 function deserializeOptionAssignmentTargetMaybeDefault(pos) {
-  if (uint8[pos] === 51) return null;
+  if (uint8[pos] === 52) return null;
   return deserializeAssignmentTargetMaybeDefault(pos);
 }
 
@@ -5751,11 +5934,6 @@ function deserializeBoxAssignmentTargetPropertyIdentifier(pos) {
 
 function deserializeBoxAssignmentTargetPropertyProperty(pos) {
   return deserializeAssignmentTargetPropertyProperty(uint32[pos >> 2]);
-}
-
-function deserializeOptionExpression(pos) {
-  if (uint8[pos] === 51) return null;
-  return deserializeExpression(pos);
 }
 
 function deserializeBoxBlockStatement(pos) {
@@ -5830,6 +6008,10 @@ function deserializeBoxWithStatement(pos) {
   return deserializeWithStatement(uint32[pos >> 2]);
 }
 
+function deserializeBoxStructStatement(pos) {
+  return deserializeStructStatement(uint32[pos >> 2]);
+}
+
 function deserializeBoxVariableDeclaration(pos) {
   return deserializeVariableDeclaration(uint32[pos >> 2]);
 }
@@ -5871,7 +6053,7 @@ function deserializeVecVariableDeclarator(pos) {
 }
 
 function deserializeOptionStatement(pos) {
-  if (uint8[pos] === 70) return null;
+  if (uint8[pos] === 71) return null;
   return deserializeStatement(pos);
 }
 
@@ -5979,6 +6161,18 @@ function deserializeVecOptionBindingPattern(pos) {
   return arr;
 }
 
+function deserializeVecDecorator(pos) {
+  let arr = [],
+    pos32 = pos >> 2;
+  pos = uint32[pos32];
+  let endPos = pos + uint32[pos32 + 2] * 24;
+  for (; pos !== endPos; ) {
+    arr.push(deserializeDecorator(pos));
+    pos += 24;
+  }
+  return arr;
+}
+
 function deserializeOptionBindingIdentifier(pos) {
   if (uint32[(pos + 8) >> 2] === 0 && uint32[(pos + 12) >> 2] === 0) return null;
   return deserializeBindingIdentifier(pos);
@@ -6027,18 +6221,6 @@ function deserializeVecFormalParameter(pos) {
   return arr;
 }
 
-function deserializeVecDecorator(pos) {
-  let arr = [],
-    pos32 = pos >> 2;
-  pos = uint32[pos32];
-  let endPos = pos + uint32[pos32 + 2] * 24;
-  for (; pos !== endPos; ) {
-    arr.push(deserializeDecorator(pos));
-    pos += 24;
-  }
-  return arr;
-}
-
 function deserializeBoxClassBody(pos) {
   return deserializeClassBody(uint32[pos >> 2]);
 }
@@ -6077,6 +6259,10 @@ function deserializeBoxTSIndexSignature(pos) {
 
 function deserializeBoxImportDeclaration(pos) {
   return deserializeImportDeclaration(uint32[pos >> 2]);
+}
+
+function deserializeBoxLazyImportDeclaration(pos) {
+  return deserializeLazyImportDeclaration(uint32[pos >> 2]);
 }
 
 function deserializeBoxExportAllDeclaration(pos) {
@@ -6562,6 +6748,54 @@ function deserializeOptionTSMappedTypeModifierOperator(pos) {
 
 function deserializeBoxTSExternalModuleReference(pos) {
   return deserializeTSExternalModuleReference(uint32[pos >> 2]);
+}
+
+function deserializeBoxStructBody(pos) {
+  return deserializeStructBody(uint32[pos >> 2]);
+}
+
+function deserializeVecStructElement(pos) {
+  let arr = [],
+    pos32 = pos >> 2;
+  pos = uint32[pos32];
+  let endPos = pos + uint32[pos32 + 2] * 16;
+  for (; pos !== endPos; ) {
+    arr.push(deserializeStructElement(pos));
+    pos += 16;
+  }
+  return arr;
+}
+
+function deserializeVecArkUIChild(pos) {
+  let arr = [],
+    pos32 = pos >> 2;
+  pos = uint32[pos32];
+  let endPos = pos + uint32[pos32 + 2] * 16;
+  for (; pos !== endPos; ) {
+    arr.push(deserializeArkUIChild(pos));
+    pos += 16;
+  }
+  return arr;
+}
+
+function deserializeVecCallExpression(pos) {
+  let arr = [],
+    pos32 = pos >> 2;
+  pos = uint32[pos32];
+  let endPos = pos + uint32[pos32 + 2] * 64;
+  for (; pos !== endPos; ) {
+    arr.push(deserializeCallExpression(pos));
+    pos += 64;
+  }
+  return arr;
+}
+
+function deserializeBoxExpression(pos) {
+  return deserializeExpression(uint32[pos >> 2]);
+}
+
+function deserializeBoxStatement(pos) {
+  return deserializeStatement(uint32[pos >> 2]);
 }
 
 function deserializeOptionNameSpan(pos) {

@@ -107,6 +107,7 @@ pub enum AstNodes<'a> {
     AccessorProperty(&'a AstNode<'a, AccessorProperty<'a>>),
     ImportExpression(&'a AstNode<'a, ImportExpression<'a>>),
     ImportDeclaration(&'a AstNode<'a, ImportDeclaration<'a>>),
+    LazyImportDeclaration(&'a AstNode<'a, LazyImportDeclaration<'a>>),
     ImportSpecifier(&'a AstNode<'a, ImportSpecifier<'a>>),
     ImportDefaultSpecifier(&'a AstNode<'a, ImportDefaultSpecifier<'a>>),
     ImportNamespaceSpecifier(&'a AstNode<'a, ImportNamespaceSpecifier<'a>>),
@@ -304,6 +305,7 @@ impl<'a> AstNodes<'a> {
             Self::AccessorProperty(n) => n.span(),
             Self::ImportExpression(n) => n.span(),
             Self::ImportDeclaration(n) => n.span(),
+            Self::LazyImportDeclaration(n) => n.span(),
             Self::ImportSpecifier(n) => n.span(),
             Self::ImportDefaultSpecifier(n) => n.span(),
             Self::ImportNamespaceSpecifier(n) => n.span(),
@@ -501,6 +503,7 @@ impl<'a> AstNodes<'a> {
             Self::AccessorProperty(n) => n.parent,
             Self::ImportExpression(n) => n.parent,
             Self::ImportDeclaration(n) => n.parent,
+            Self::LazyImportDeclaration(n) => n.parent,
             Self::ImportSpecifier(n) => n.parent,
             Self::ImportDefaultSpecifier(n) => n.parent,
             Self::ImportNamespaceSpecifier(n) => n.parent,
@@ -698,6 +701,7 @@ impl<'a> AstNodes<'a> {
             Self::AccessorProperty(_) => "AccessorProperty",
             Self::ImportExpression(_) => "ImportExpression",
             Self::ImportDeclaration(_) => "ImportDeclaration",
+            Self::LazyImportDeclaration(_) => "LazyImportDeclaration",
             Self::ImportSpecifier(_) => "ImportSpecifier",
             Self::ImportDefaultSpecifier(_) => "ImportDefaultSpecifier",
             Self::ImportNamespaceSpecifier(_) => "ImportNamespaceSpecifier",
@@ -4912,6 +4916,14 @@ impl<'a> AstNode<'a, ModuleDeclaration<'a>> {
                     following_span: self.following_span,
                 }))
             }
+            ModuleDeclaration::LazyImportDeclaration(s) => {
+                AstNodes::LazyImportDeclaration(self.allocator.alloc(AstNode {
+                    inner: s.as_ref(),
+                    parent,
+                    allocator: self.allocator,
+                    following_span: self.following_span,
+                }))
+            }
             ModuleDeclaration::ExportAllDeclaration(s) => {
                 AstNodes::ExportAllDeclaration(self.allocator.alloc(AstNode {
                     inner: s.as_ref(),
@@ -5136,6 +5148,53 @@ impl<'a> AstNode<'a, ImportDeclaration<'a>> {
     #[inline]
     pub fn import_kind(&self) -> ImportOrExportKind {
         self.inner.import_kind
+    }
+
+    pub fn format_leading_comments(&self, f: &mut Formatter<'_, 'a>) {
+        format_leading_comments(self.span()).fmt(f);
+    }
+
+    pub fn format_trailing_comments(&self, f: &mut Formatter<'_, 'a>) {
+        format_trailing_comments(self.parent.span(), self.inner.span(), self.following_span).fmt(f);
+    }
+}
+
+impl<'a> AstNode<'a, LazyImportDeclaration<'a>> {
+    #[inline]
+    pub fn specifiers(&self) -> Option<&AstNode<'a, Vec<'a, ImportDeclarationSpecifier<'a>>>> {
+        let following_span = Some(self.inner.source.span());
+        self.allocator
+            .alloc(self.inner.specifiers.as_ref().map(|inner| AstNode {
+                inner,
+                allocator: self.allocator,
+                parent: self.allocator.alloc(AstNodes::LazyImportDeclaration(transmute_self(self))),
+                following_span,
+            }))
+            .as_ref()
+    }
+
+    #[inline]
+    pub fn source(&self) -> &AstNode<'a, StringLiteral<'a>> {
+        let following_span = self.inner.with_clause.as_deref().map(GetSpan::span);
+        self.allocator.alloc(AstNode {
+            inner: &self.inner.source,
+            allocator: self.allocator,
+            parent: self.allocator.alloc(AstNodes::LazyImportDeclaration(transmute_self(self))),
+            following_span,
+        })
+    }
+
+    #[inline]
+    pub fn with_clause(&self) -> Option<&AstNode<'a, WithClause<'a>>> {
+        let following_span = None;
+        self.allocator
+            .alloc(self.inner.with_clause.as_ref().map(|inner| AstNode {
+                inner: inner.as_ref(),
+                allocator: self.allocator,
+                parent: self.allocator.alloc(AstNodes::LazyImportDeclaration(transmute_self(self))),
+                following_span,
+            }))
+            .as_ref()
     }
 
     pub fn format_leading_comments(&self, f: &mut Formatter<'_, 'a>) {
@@ -9525,12 +9584,12 @@ impl<'a> AstNode<'a, ArkUIChild<'a>> {
                     following_span: self.following_span,
                 }))
             }
-            ArkUIChild::Expression(s) => {
+            ArkUIChild::Expression(_s) => {
                 panic!(
                     "No kind for current enum variant yet, please see `tasks/ast_tools/src/generators/ast_kind.rs`"
                 )
             }
-            ArkUIChild::Statement(s) => {
+            ArkUIChild::Statement(_s) => {
                 panic!(
                     "No kind for current enum variant yet, please see `tasks/ast_tools/src/generators/ast_kind.rs`"
                 )

@@ -1404,6 +1404,21 @@ pub trait Traverse<'a, State> {
     }
 
     #[inline]
+    fn enter_lazy_import_declaration(
+        &mut self,
+        node: &mut LazyImportDeclaration<'a>,
+        ctx: &mut TraverseCtx<'a, State>,
+    ) {
+    }
+    #[inline]
+    fn exit_lazy_import_declaration(
+        &mut self,
+        node: &mut LazyImportDeclaration<'a>,
+        ctx: &mut TraverseCtx<'a, State>,
+    ) {
+    }
+
+    #[inline]
     fn enter_import_declaration_specifier(
         &mut self,
         node: &mut ImportDeclarationSpecifier<'a>,

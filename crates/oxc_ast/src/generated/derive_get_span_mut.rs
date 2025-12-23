@@ -633,6 +633,7 @@ impl GetSpanMut for Statement<'_> {
             Self::TSGlobalDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::TSImportEqualsDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::ImportDeclaration(it) => GetSpanMut::span_mut(&mut **it),
+            Self::LazyImportDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::ExportAllDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::ExportDefaultDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::ExportNamedDeclaration(it) => GetSpanMut::span_mut(&mut **it),
@@ -1058,6 +1059,7 @@ impl GetSpanMut for ModuleDeclaration<'_> {
     fn span_mut(&mut self) -> &mut Span {
         match self {
             Self::ImportDeclaration(it) => GetSpanMut::span_mut(&mut **it),
+            Self::LazyImportDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::ExportAllDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::ExportDefaultDeclaration(it) => GetSpanMut::span_mut(&mut **it),
             Self::ExportNamedDeclaration(it) => GetSpanMut::span_mut(&mut **it),
@@ -1082,6 +1084,13 @@ impl GetSpanMut for ImportExpression<'_> {
 }
 
 impl GetSpanMut for ImportDeclaration<'_> {
+    #[inline]
+    fn span_mut(&mut self) -> &mut Span {
+        &mut self.span
+    }
+}
+
+impl GetSpanMut for LazyImportDeclaration<'_> {
     #[inline]
     fn span_mut(&mut self) -> &mut Span {
         &mut self.span

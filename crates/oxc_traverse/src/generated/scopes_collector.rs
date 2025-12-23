@@ -662,6 +662,7 @@ impl<'a> Visit<'a> for ChildScopeCollector {
                 // `EmptyStatement`
                 // `TSImportEqualsDeclaration`
                 // `ImportDeclaration`
+                // `LazyImportDeclaration`
                 // `ExportAllDeclaration`
                 // `TSNamespaceExportDeclaration`
             }
@@ -1083,6 +1084,7 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             _ => {
                 // Remaining variants do not contain scopes:
                 // `ImportDeclaration`
+                // `LazyImportDeclaration`
                 // `ExportAllDeclaration`
                 // `TSNamespaceExportDeclaration`
             }
@@ -1111,6 +1113,11 @@ impl<'a> Visit<'a> for ChildScopeCollector {
 
     #[inline(always)]
     fn visit_import_declaration(&mut self, it: &ImportDeclaration<'a>) {
+        // Struct does not contain a scope. Halt traversal.
+    }
+
+    #[inline(always)]
+    fn visit_lazy_import_declaration(&mut self, it: &LazyImportDeclaration<'a>) {
         // Struct does not contain a scope. Halt traversal.
     }
 

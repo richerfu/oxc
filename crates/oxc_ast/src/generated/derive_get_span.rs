@@ -633,6 +633,7 @@ impl GetSpan for Statement<'_> {
             Self::TSGlobalDeclaration(it) => GetSpan::span(&**it),
             Self::TSImportEqualsDeclaration(it) => GetSpan::span(&**it),
             Self::ImportDeclaration(it) => GetSpan::span(&**it),
+            Self::LazyImportDeclaration(it) => GetSpan::span(&**it),
             Self::ExportAllDeclaration(it) => GetSpan::span(&**it),
             Self::ExportDefaultDeclaration(it) => GetSpan::span(&**it),
             Self::ExportNamedDeclaration(it) => GetSpan::span(&**it),
@@ -1058,6 +1059,7 @@ impl GetSpan for ModuleDeclaration<'_> {
     fn span(&self) -> Span {
         match self {
             Self::ImportDeclaration(it) => GetSpan::span(&**it),
+            Self::LazyImportDeclaration(it) => GetSpan::span(&**it),
             Self::ExportAllDeclaration(it) => GetSpan::span(&**it),
             Self::ExportDefaultDeclaration(it) => GetSpan::span(&**it),
             Self::ExportNamedDeclaration(it) => GetSpan::span(&**it),
@@ -1082,6 +1084,13 @@ impl GetSpan for ImportExpression<'_> {
 }
 
 impl GetSpan for ImportDeclaration<'_> {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+impl GetSpan for LazyImportDeclaration<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span

@@ -1016,4 +1016,18 @@ mod test {
             ret.errors
         );
     }
+
+    #[test]
+    fn arkui_object_literal_with_type_assertion() {
+        // Test object literal with type assertion (as Type)
+        let allocator = Allocator::default();
+        let source_type = SourceType::ets();
+        let source = "let obj = {\n  toneMapping: {\n    type: 1,\n    exposure: 1.0,\n  } as Type\n};";
+        let ret = Parser::new(&allocator, source, source_type).parse();
+        assert!(
+            ret.errors.is_empty(),
+            "Should parse object literal with type assertion. Errors: {:?}",
+            ret.errors
+        );
+    }
 }

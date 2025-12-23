@@ -278,7 +278,9 @@ impl<'a> ParserImpl<'a> {
                 }
                 
                 self.expect(Kind::RCurly);
-                Expression::ObjectExpression(self.ast.alloc_object_expression(self.end_span(obj_span), properties))
+                let obj_expr = Expression::ObjectExpression(self.ast.alloc_object_expression(self.end_span(obj_span), properties));
+                // Check for type assertion after object expression
+                self.parse_type_assertion_if_present(obj_expr)
             } else {
                 // Not a leading-dot expression, parse as normal object expression
                 // We've already consumed the opening brace, so we need to parse the rest
@@ -294,7 +296,9 @@ impl<'a> ParserImpl<'a> {
                     self.state.trailing_commas.insert(obj_span, self.end_span(comma_span));
                 }
                 self.expect(Kind::RCurly);
-                Expression::ObjectExpression(self.ast.alloc_object_expression(self.end_span(obj_span), object_expression_properties))
+                let obj_expr = Expression::ObjectExpression(self.ast.alloc_object_expression(self.end_span(obj_span), object_expression_properties));
+                // Check for type assertion after object expression
+                self.parse_type_assertion_if_present(obj_expr)
             }
         } else {
             self.parse_assignment_expression_or_higher()
@@ -340,6 +344,35 @@ impl<'a> ParserImpl<'a> {
 
         self.expect(Kind::RBrack);
         expression
+    }
+
+    /// Parse type assertion (as or satisfies) if present after an expression
+    /// Returns the expression wrapped in type assertion if found, otherwise returns the original expression
+    fn parse_type_assertion_if_present(&mut self, expr: Expression<'a>) -> Expression<'a> {
+        let kind = self.cur_kind();
+        if matches!(kind, Kind::As | Kind::Satisfies) {
+            if !self.cur_token().is_on_new_line() {
+                let lhs_span = self.start_span();
+                self.bump_any();
+                let type_annotation = self.parse_ts_type();
+                let span = self.end_span(lhs_span);
+                if kind == Kind::As {
+                    if !self.is_ts {
+                        self.error(diagnostics::as_in_ts(span));
+                    }
+                    self.ast.expression_ts_as(span, expr, type_annotation)
+                } else {
+                    if !self.is_ts {
+                        self.error(diagnostics::satisfies_in_ts(span));
+                    }
+                    self.ast.expression_ts_satisfies(span, expr, type_annotation)
+                }
+            } else {
+                expr
+            }
+        } else {
+            expr
+        }
     }
 
     /// `MethodDefinition`[Yield, Await] :

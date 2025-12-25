@@ -842,3 +842,45 @@ impl ESTree for ParenthesizedExpressionConverter<'_, '_> {
         state.end();
     }
 }
+
+/// Helper struct to serialize LeadingDotExpression's callee as a MemberExpression
+#[allow(dead_code)]
+struct LeadingDotExpressionCallee<'a, 'b>(&'b LeadingDotExpression<'a>);
+
+impl ESTree for LeadingDotExpressionCallee<'_, '_> {
+    fn serialize<S: Serializer>(&self, serializer: S) {
+        let expr = self.0;
+        let mut state = serializer.serialize_struct();
+        state.serialize_field("type", &JsonSafeString("MemberExpression"));
+        state.serialize_field("object", &Null(()));
+        state.serialize_field("property", &expr.property);
+        state.serialize_field("optional", &expr.optional);
+        state.serialize_field("computed", &crate::serialize::basic::False(expr));
+        state.serialize_span(expr.property.span);
+        state.end();
+    }
+}
+
+/// Converter for [`LeadingDotExpression`].
+///
+/// LeadingDotExpression is similar to CallExpression but starts with a dot.
+/// We serialize it as a CallExpression-like structure for ESTree compatibility.
+#[ast_meta]
+#[allow(dead_code)]
+pub struct LeadingDotExpressionConverter<'a, 'b>(pub &'b LeadingDotExpression<'a>);
+
+impl ESTree for LeadingDotExpressionConverter<'_, '_> {
+    fn serialize<S: Serializer>(&self, serializer: S) {
+        let expr = self.0;
+        let mut state = serializer.serialize_struct();
+        state.serialize_field("type", &JsonSafeString("CallExpression"));
+        state.serialize_field("callee", &LeadingDotExpressionCallee(expr));
+        if let Some(type_args) = &expr.type_arguments {
+            state.serialize_field("typeArguments", type_args);
+        }
+        state.serialize_field("arguments", &expr.arguments);
+        state.serialize_field("optional", &expr.optional);
+        state.serialize_span(expr.span);
+        state.end();
+    }
+}

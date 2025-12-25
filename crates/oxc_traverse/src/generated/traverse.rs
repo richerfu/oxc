@@ -286,16 +286,16 @@ pub trait Traverse<'a, State> {
     }
 
     #[inline]
-    fn enter_leading_dot_member_expression(
+    fn enter_leading_dot_expression(
         &mut self,
-        node: &mut LeadingDotMemberExpression<'a>,
+        node: &mut LeadingDotExpression<'a>,
         ctx: &mut TraverseCtx<'a, State>,
     ) {
     }
     #[inline]
-    fn exit_leading_dot_member_expression(
+    fn exit_leading_dot_expression(
         &mut self,
-        node: &mut LeadingDotMemberExpression<'a>,
+        node: &mut LeadingDotExpression<'a>,
         ctx: &mut TraverseCtx<'a, State>,
     ) {
     }

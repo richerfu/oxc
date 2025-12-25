@@ -175,10 +175,6 @@ impl<'a, 'b> SimpleArgument<'a, 'b> {
             ChainElement::PrivateFieldExpression(private_field) => {
                 Self::from(&private_field.object).is_simple_impl(depth)
             }
-            ChainElement::LeadingDotMemberExpression(_) => {
-                // LeadingDotMemberExpression has implicit `this`, which is always simple
-                true
-            }
         }
     }
 }

@@ -435,6 +435,16 @@ impl<'a> Format<'a> for AstNode<'a, Expression<'a>> {
                     })
                     .fmt(f);
             }
+            Expression::LeadingDotExpression(inner) => {
+                allocator
+                    .alloc(AstNode::<LeadingDotExpression> {
+                        inner,
+                        parent,
+                        allocator,
+                        following_span: self.following_span,
+                    })
+                    .fmt(f);
+            }
             it @ match_member_expression!(Expression) => {
                 let inner = it.to_member_expression();
                 allocator
@@ -814,16 +824,6 @@ impl<'a> Format<'a> for AstNode<'a, MemberExpression<'a>> {
                     })
                     .fmt(f);
             }
-            MemberExpression::LeadingDotMemberExpression(inner) => {
-                allocator
-                    .alloc(AstNode::<LeadingDotMemberExpression> {
-                        inner,
-                        parent,
-                        allocator,
-                        following_span: self.following_span,
-                    })
-                    .fmt(f);
-            }
         }
     }
 }
@@ -897,7 +897,7 @@ impl<'a> Format<'a> for AstNode<'a, PrivateFieldExpression<'a>> {
     }
 }
 
-impl<'a> Format<'a> for AstNode<'a, LeadingDotMemberExpression<'a>> {
+impl<'a> Format<'a> for AstNode<'a, LeadingDotExpression<'a>> {
     fn fmt(&self, f: &mut Formatter<'_, 'a>) {
         let is_suppressed = f.comments().is_suppressed(self.span().start);
         if !is_suppressed && format_type_cast_comment_node(self, false, f) {

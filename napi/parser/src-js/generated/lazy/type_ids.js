@@ -52,7 +52,7 @@ export const NODE_TYPE_IDS_MAP = new Map([
   ["ComputedMemberExpression", 44],
   ["StaticMemberExpression", 45],
   ["PrivateFieldExpression", 46],
-  ["LeadingDotMemberExpression", 47],
+  ["LeadingDotExpression", 47],
   ["CallExpression", 48],
   ["NewExpression", 49],
   ["MetaProperty", 50],

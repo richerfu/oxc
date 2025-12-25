@@ -117,7 +117,7 @@ impl NoUnusedExpressions {
             | Expression::ObjectExpression(_)
             | Expression::PrivateFieldExpression(_)
             | Expression::StaticMemberExpression(_)
-            | Expression::LeadingDotMemberExpression(_)
+            | Expression::LeadingDotExpression(_)
             | Expression::TemplateLiteral(_)
             | Expression::ArrowFunctionExpression(_)
             | Expression::ClassExpression(_)
@@ -132,8 +132,8 @@ impl NoUnusedExpressions {
                 }
                 ChainElement::ComputedMemberExpression(_)
                 | ChainElement::StaticMemberExpression(_)
-                | ChainElement::PrivateFieldExpression(_)
-                | ChainElement::LeadingDotMemberExpression(_) => true,
+                | ChainElement::PrivateFieldExpression(_) => true,
+                // LeadingDotExpression is now a separate Expression type, not a ChainElement
             },
             Expression::AssignmentExpression(_)
             | Expression::AwaitExpression(_)

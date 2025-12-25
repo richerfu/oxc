@@ -225,9 +225,9 @@ impl<'a> Dummy<'a> for TemplateElementValue<'a> {
 impl<'a> Dummy<'a> for MemberExpression<'a> {
     /// Create a dummy [`MemberExpression`].
     ///
-    /// Has cost of making 1 allocation (56 bytes).
+    /// Has cost of making 2 allocations (64 bytes).
     fn dummy(allocator: &'a Allocator) -> Self {
-        Self::LeadingDotMemberExpression(Dummy::dummy(allocator))
+        Self::StaticMemberExpression(Dummy::dummy(allocator))
     }
 }
 
@@ -273,8 +273,8 @@ impl<'a> Dummy<'a> for PrivateFieldExpression<'a> {
     }
 }
 
-impl<'a> Dummy<'a> for LeadingDotMemberExpression<'a> {
-    /// Create a dummy [`LeadingDotMemberExpression`].
+impl<'a> Dummy<'a> for LeadingDotExpression<'a> {
+    /// Create a dummy [`LeadingDotExpression`].
     ///
     /// Does not allocate any data into arena.
     fn dummy(allocator: &'a Allocator) -> Self {
@@ -282,7 +282,8 @@ impl<'a> Dummy<'a> for LeadingDotMemberExpression<'a> {
             span: Dummy::dummy(allocator),
             property: Dummy::dummy(allocator),
             optional: Dummy::dummy(allocator),
-            rest: Dummy::dummy(allocator),
+            type_arguments: Dummy::dummy(allocator),
+            arguments: Dummy::dummy(allocator),
         }
     }
 }
@@ -595,7 +596,7 @@ impl<'a> Dummy<'a> for AwaitExpression<'a> {
 impl<'a> Dummy<'a> for ChainExpression<'a> {
     /// Create a dummy [`ChainExpression`].
     ///
-    /// Has cost of making 1 allocation (56 bytes).
+    /// Has cost of making 2 allocations (32 bytes).
     fn dummy(allocator: &'a Allocator) -> Self {
         Self { span: Dummy::dummy(allocator), expression: Dummy::dummy(allocator) }
     }
@@ -604,9 +605,9 @@ impl<'a> Dummy<'a> for ChainExpression<'a> {
 impl<'a> Dummy<'a> for ChainElement<'a> {
     /// Create a dummy [`ChainElement`].
     ///
-    /// Has cost of making 1 allocation (56 bytes).
+    /// Has cost of making 2 allocations (32 bytes).
     fn dummy(allocator: &'a Allocator) -> Self {
-        Self::LeadingDotMemberExpression(Dummy::dummy(allocator))
+        Self::TSNonNullExpression(Dummy::dummy(allocator))
     }
 }
 

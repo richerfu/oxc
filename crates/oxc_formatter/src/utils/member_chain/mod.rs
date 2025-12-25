@@ -216,8 +216,8 @@ impl<'a> Format<'a> for MemberChain<'a, '_> {
             };
         }
 
-        // Check if this is an ArkUI leading-dot expression (contains `LeadingDotMemberExpression`)
-        // Only LeadingDotMemberExpression should be treated as leading-dot, not regular `this.property`
+        // Check if this is an ArkUI leading-dot expression (contains `LeadingDotExpression`)
+        // Only LeadingDotExpression should be treated as leading-dot, not regular `this.property`
         // We check all members, not just the first one, because in chained calls like
         // .borderRadius(20).borderWidth(1), the first member is a CallExpression
         let is_arkui_leading_dot = f.context().source_type().is_arkui()
@@ -226,7 +226,7 @@ impl<'a> Format<'a> for MemberChain<'a, '_> {
                     member,
                     ChainMember::Node(node) if matches!(
                         node.as_ref(),
-                        Expression::LeadingDotMemberExpression(_)
+                        Expression::LeadingDotExpression(_)
                     )
                 )
             });
@@ -482,7 +482,7 @@ fn chain_members_iter<'a, 'b>(
                     Expression::StaticMemberExpression(_)
                         | Expression::ComputedMemberExpression(_)
                         | Expression::CallExpression(_)
-                        | Expression::LeadingDotMemberExpression(_)
+                        | Expression::LeadingDotExpression(_)
                 );
 
                 if is_chain {
@@ -511,7 +511,7 @@ fn chain_members_iter<'a, 'b>(
                     Expression::StaticMemberExpression(_)
                         | Expression::ComputedMemberExpression(_)
                         | Expression::CallExpression(_)
-                        | Expression::LeadingDotMemberExpression(_)
+                        | Expression::LeadingDotExpression(_)
                 );
                 let position = if is_chain {
                     CallExpressionPosition::Middle
@@ -528,10 +528,8 @@ fn chain_members_iter<'a, 'b>(
                 next = Some(expr.object());
                 ChainMember::ComputedMember(expr)
             }
-            AstNodes::LeadingDotMemberExpression(_expr) => {
-                // LeadingDotMemberExpression has no object, so we stop here
-                // Chain expressions like .method1().method2() are parsed as separate CallExpression nodes
-                // by the parser, so we don't need to handle rest here
+            AstNodes::LeadingDotExpression(_expr) => {
+                // LeadingDotExpression is similar to CallExpression, so we treat it as a node
                 ChainMember::Node(expression)
             }
             AstNodes::TSNonNullExpression(expr) => {

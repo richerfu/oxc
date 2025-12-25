@@ -988,6 +988,7 @@ mod test {
     #[test]
     fn arkui_extend_function() {
         // Test @Extend decorator on function declarations
+        // In ArkUI, dot expressions chain together across lines
         let allocator = Allocator::default();
         let source_type = SourceType::ets();
         let source = "@Extend(Text)\nfunction memoTextExpand() {\n  .textOverflow({ overflow: TextOverflow.Ellipsis })\n  .maxLines(Constants.MAX_TEXT_LINES)\n}";
@@ -1004,7 +1005,7 @@ mod test {
             // Verify function body has statements
             if let Some(body) = &func.body {
                 assert!(!body.statements.is_empty(), "Function body should have statements");
-                // The two method calls are chained together as a single expression statement
+                // The dot expressions chain together as a single expression statement
                 assert_eq!(body.statements.len(), 1, "Should have 1 chained expression statement");
             }
         } else {
@@ -1038,6 +1039,37 @@ mod test {
             "Should parse @Extend function with property access. Errors: {:?}",
             ret.errors
         );
+    }
+
+    #[test]
+    fn arkui_extend_function_multiline_chain() {
+        // Test @Extend with multiple dot expressions on separate lines
+        // The dot expressions chain together as a single expression statement
+        let allocator = Allocator::default();
+        let source_type = SourceType::ets();
+        let source = "@Extend(Text)\nfunction superFancyText(size: number) {\n  .fontSize(size)\n  .fancy()\n}";
+        let ret = Parser::new(&allocator, source, source_type).parse();
+        assert!(
+            ret.errors.is_empty(),
+            "Should parse @Extend function with multiline chain. Errors: {:?}",
+            ret.errors
+        );
+        assert_eq!(ret.program.body.len(), 1);
+        if let Statement::FunctionDeclaration(func) = &ret.program.body[0] {
+            assert_eq!(func.id.as_ref().unwrap().name.as_str(), "superFancyText");
+            if let Some(body) = &func.body {
+                // Should have 1 chained expression statement
+                assert_eq!(body.statements.len(), 1, "Should have 1 chained statement");
+                // The statement should be a call expression chain
+                if let Statement::ExpressionStatement(expr_stmt) = &body.statements[0] {
+                    assert!(matches!(expr_stmt.expression, Expression::CallExpression(_)));
+                } else {
+                    panic!("Statement should be ExpressionStatement");
+                }
+            }
+        } else {
+            panic!("Expected FunctionDeclaration");
+        }
     }
 
     #[test]

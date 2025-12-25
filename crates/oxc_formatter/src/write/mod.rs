@@ -227,7 +227,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ObjectProperty<'a>> {
             }
         } else {
             // Check if this is an ArkUI leading-dot expression property
-            // (value is LeadingDotMemberExpression or CallExpression/StaticMemberExpression chain starting with LeadingDotMemberExpression)
+            // (value is LeadingDotExpression or CallExpression/StaticMemberExpression chain starting with LeadingDotExpression)
             let value = self.value();
             let is_leading_dot_expression = is_arkui_leading_dot_expression(value);
 
@@ -246,16 +246,44 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ObjectProperty<'a>> {
 /// This handles chained calls like .method1().method2()
 fn is_arkui_leading_dot_expression<'a>(expr: &AstNode<'a, Expression<'a>>) -> bool {
     match expr.as_ast_nodes() {
-        AstNodes::LeadingDotMemberExpression(_) => true,
+        AstNodes::LeadingDotExpression(_) => true,
         AstNodes::CallExpression(call) => {
             // Check if the callee is a leading-dot expression or a chain starting with one
             is_arkui_leading_dot_expression(&call.callee())
         }
         AstNodes::StaticMemberExpression(member) => {
             // Check if the object is a leading-dot expression or a chain starting with one
-            is_arkui_leading_dot_expression(&member.object())
+            let object = member.object();
+            match object.as_ast_nodes() {
+                AstNodes::LeadingDotExpression(_) => true,
+                _ => {
+                    // Recursively check the object
+                    is_arkui_leading_dot_expression(object)
+                }
+            }
         }
         _ => false,
+    }
+}
+
+impl<'a> FormatWrite<'a> for AstNode<'a, LeadingDotExpression<'a>> {
+    fn write(&self, f: &mut Formatter<'_, 'a>) {
+        let property = self.property();
+        let type_arguments = self.type_arguments();
+        let arguments = self.arguments();
+        let optional = self.optional();
+
+        // Format: .property<Type>(args) or ?.property<Type>(args)
+        write!(
+            f,
+            [group(&format_args!(
+                soft_line_break_or_space(),
+                optional.then_some("?.").unwrap_or("."),
+                property,
+                type_arguments,
+                arguments
+            ))]
+        );
     }
 }
 

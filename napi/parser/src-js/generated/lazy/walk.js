@@ -18,7 +18,7 @@ import {
   ComputedMemberExpression,
   StaticMemberExpression,
   PrivateFieldExpression,
-  LeadingDotMemberExpression,
+  LeadingDotExpression,
   CallExpression,
   NewExpression,
   MetaProperty,
@@ -333,6 +333,9 @@ function walkExpression(pos, ast, visitors) {
     case 40:
       walkBoxArkUIComponentExpression(pos + 8, ast, visitors);
       return;
+    case 41:
+      walkBoxLeadingDotExpression(pos + 8, ast, visitors);
+      return;
     case 48:
       walkBoxComputedMemberExpression(pos + 8, ast, visitors);
       return;
@@ -341,9 +344,6 @@ function walkExpression(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for Expression`);
@@ -516,6 +516,9 @@ function walkArrayExpressionElement(pos, ast, visitors) {
     case 40:
       walkBoxArkUIComponentExpression(pos + 8, ast, visitors);
       return;
+    case 41:
+      walkBoxLeadingDotExpression(pos + 8, ast, visitors);
+      return;
     case 48:
       walkBoxComputedMemberExpression(pos + 8, ast, visitors);
       return;
@@ -524,9 +527,6 @@ function walkArrayExpressionElement(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     case 64:
       walkBoxSpreadElement(pos + 8, ast, visitors);
@@ -715,6 +715,9 @@ function walkPropertyKey(pos, ast, visitors) {
     case 40:
       walkBoxArkUIComponentExpression(pos + 8, ast, visitors);
       return;
+    case 41:
+      walkBoxLeadingDotExpression(pos + 8, ast, visitors);
+      return;
     case 48:
       walkBoxComputedMemberExpression(pos + 8, ast, visitors);
       return;
@@ -723,9 +726,6 @@ function walkPropertyKey(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     case 64:
       walkBoxIdentifierName(pos + 8, ast, visitors);
@@ -829,19 +829,20 @@ function walkPrivateFieldExpression(pos, ast, visitors) {
   if (exit !== null) exit(node);
 }
 
-function walkLeadingDotMemberExpression(pos, ast, visitors) {
+function walkLeadingDotExpression(pos, ast, visitors) {
   const enterExit = visitors[47];
   let node,
     enter,
     exit = null;
   if (enterExit !== null) {
     ({ enter, exit } = enterExit);
-    node = new LeadingDotMemberExpression(pos, ast);
+    node = new LeadingDotExpression(pos, ast);
     if (enter !== null) enter(node);
   }
 
   walkIdentifierName(pos + 8, ast, visitors);
-  walkOptionExpression(pos + 32, ast, visitors);
+  walkOptionBoxTSTypeParameterInstantiation(pos + 32, ast, visitors);
+  walkVecArgument(pos + 40, ast, visitors);
 
   if (exit !== null) exit(node);
 }
@@ -1040,6 +1041,9 @@ function walkArgument(pos, ast, visitors) {
     case 40:
       walkBoxArkUIComponentExpression(pos + 8, ast, visitors);
       return;
+    case 41:
+      walkBoxLeadingDotExpression(pos + 8, ast, visitors);
+      return;
     case 48:
       walkBoxComputedMemberExpression(pos + 8, ast, visitors);
       return;
@@ -1048,9 +1052,6 @@ function walkArgument(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     case 64:
       walkBoxSpreadElement(pos + 8, ast, visitors);
@@ -1210,9 +1211,6 @@ function walkAssignmentTarget(pos, ast, visitors) {
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
       return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
-      return;
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for AssignmentTarget`);
   }
@@ -1243,9 +1241,6 @@ function walkSimpleAssignmentTarget(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for SimpleAssignmentTarget`);
@@ -1318,9 +1313,6 @@ function walkAssignmentTargetMaybeDefault(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     default:
       throw new Error(
@@ -1462,9 +1454,6 @@ function walkChainElement(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ChainElement`);
@@ -1907,6 +1896,9 @@ function walkForStatementInit(pos, ast, visitors) {
     case 40:
       walkBoxArkUIComponentExpression(pos + 8, ast, visitors);
       return;
+    case 41:
+      walkBoxLeadingDotExpression(pos + 8, ast, visitors);
+      return;
     case 48:
       walkBoxComputedMemberExpression(pos + 8, ast, visitors);
       return;
@@ -1915,9 +1907,6 @@ function walkForStatementInit(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     case 64:
       walkBoxVariableDeclaration(pos + 8, ast, visitors);
@@ -1979,9 +1968,6 @@ function walkForStatementLeft(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ForStatementLeft`);
@@ -2847,6 +2833,9 @@ function walkExportDefaultDeclarationKind(pos, ast, visitors) {
     case 40:
       walkBoxArkUIComponentExpression(pos + 8, ast, visitors);
       return;
+    case 41:
+      walkBoxLeadingDotExpression(pos + 8, ast, visitors);
+      return;
     case 48:
       walkBoxComputedMemberExpression(pos + 8, ast, visitors);
       return;
@@ -2855,9 +2844,6 @@ function walkExportDefaultDeclarationKind(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     case 64:
       walkBoxFunction(pos + 8, ast, visitors);
@@ -3234,6 +3220,9 @@ function walkJSXExpression(pos, ast, visitors) {
     case 40:
       walkBoxArkUIComponentExpression(pos + 8, ast, visitors);
       return;
+    case 41:
+      walkBoxLeadingDotExpression(pos + 8, ast, visitors);
+      return;
     case 48:
       walkBoxComputedMemberExpression(pos + 8, ast, visitors);
       return;
@@ -3242,9 +3231,6 @@ function walkJSXExpression(pos, ast, visitors) {
       return;
     case 50:
       walkBoxPrivateFieldExpression(pos + 8, ast, visitors);
-      return;
-    case 51:
-      walkBoxLeadingDotMemberExpression(pos + 8, ast, visitors);
       return;
     case 64:
       walkJSXEmptyExpression(pos + 8, ast, visitors);
@@ -5095,6 +5081,10 @@ function walkBoxArkUIComponentExpression(pos, ast, visitors) {
   return walkArkUIComponentExpression(ast.buffer.uint32[pos >> 2], ast, visitors);
 }
 
+function walkBoxLeadingDotExpression(pos, ast, visitors) {
+  return walkLeadingDotExpression(ast.buffer.uint32[pos >> 2], ast, visitors);
+}
+
 function walkVecArrayExpressionElement(pos, ast, visitors) {
   const { uint32 } = ast.buffer,
     pos32 = pos >> 2;
@@ -5176,14 +5166,6 @@ function walkBoxPrivateFieldExpression(pos, ast, visitors) {
   return walkPrivateFieldExpression(ast.buffer.uint32[pos >> 2], ast, visitors);
 }
 
-function walkBoxLeadingDotMemberExpression(pos, ast, visitors) {
-  return walkLeadingDotMemberExpression(ast.buffer.uint32[pos >> 2], ast, visitors);
-}
-
-function walkOptionExpression(pos, ast, visitors) {
-  if (!(ast.buffer[pos] === 52)) walkExpression(pos, ast, visitors);
-}
-
 function walkVecArgument(pos, ast, visitors) {
   const { uint32 } = ast.buffer,
     pos32 = pos >> 2;
@@ -5204,7 +5186,7 @@ function walkBoxObjectAssignmentTarget(pos, ast, visitors) {
 }
 
 function walkOptionAssignmentTargetMaybeDefault(pos, ast, visitors) {
-  if (!(ast.buffer[pos] === 52)) walkAssignmentTargetMaybeDefault(pos, ast, visitors);
+  if (!(ast.buffer[pos] === 51)) walkAssignmentTargetMaybeDefault(pos, ast, visitors);
 }
 
 function walkVecOptionAssignmentTargetMaybeDefault(pos, ast, visitors) {
@@ -5239,6 +5221,10 @@ function walkBoxAssignmentTargetPropertyIdentifier(pos, ast, visitors) {
 
 function walkBoxAssignmentTargetPropertyProperty(pos, ast, visitors) {
   return walkAssignmentTargetPropertyProperty(ast.buffer.uint32[pos >> 2], ast, visitors);
+}
+
+function walkOptionExpression(pos, ast, visitors) {
+  if (!(ast.buffer[pos] === 51)) walkExpression(pos, ast, visitors);
 }
 
 function walkBoxBlockStatement(pos, ast, visitors) {

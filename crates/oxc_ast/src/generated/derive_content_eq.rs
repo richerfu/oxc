@@ -71,14 +71,12 @@ impl ContentEq for Expression<'_> {
             (Self::ArkUIComponentExpression(a), Self::ArkUIComponentExpression(b)) => {
                 a.content_eq(b)
             }
+            (Self::LeadingDotExpression(a), Self::LeadingDotExpression(b)) => a.content_eq(b),
             (Self::ComputedMemberExpression(a), Self::ComputedMemberExpression(b)) => {
                 a.content_eq(b)
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -172,14 +170,12 @@ impl ContentEq for ArrayExpressionElement<'_> {
             (Self::ArkUIComponentExpression(a), Self::ArkUIComponentExpression(b)) => {
                 a.content_eq(b)
             }
+            (Self::LeadingDotExpression(a), Self::LeadingDotExpression(b)) => a.content_eq(b),
             (Self::ComputedMemberExpression(a), Self::ComputedMemberExpression(b)) => {
                 a.content_eq(b)
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -270,14 +266,12 @@ impl ContentEq for PropertyKey<'_> {
             (Self::ArkUIComponentExpression(a), Self::ArkUIComponentExpression(b)) => {
                 a.content_eq(b)
             }
+            (Self::LeadingDotExpression(a), Self::LeadingDotExpression(b)) => a.content_eq(b),
             (Self::ComputedMemberExpression(a), Self::ComputedMemberExpression(b)) => {
                 a.content_eq(b)
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -327,9 +321,6 @@ impl ContentEq for MemberExpression<'_> {
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -359,11 +350,12 @@ impl ContentEq for PrivateFieldExpression<'_> {
     }
 }
 
-impl ContentEq for LeadingDotMemberExpression<'_> {
+impl ContentEq for LeadingDotExpression<'_> {
     fn content_eq(&self, other: &Self) -> bool {
         ContentEq::content_eq(&self.property, &other.property)
             && ContentEq::content_eq(&self.optional, &other.optional)
-            && ContentEq::content_eq(&self.rest, &other.rest)
+            && ContentEq::content_eq(&self.type_arguments, &other.type_arguments)
+            && ContentEq::content_eq(&self.arguments, &other.arguments)
     }
 }
 
@@ -450,14 +442,12 @@ impl ContentEq for Argument<'_> {
             (Self::ArkUIComponentExpression(a), Self::ArkUIComponentExpression(b)) => {
                 a.content_eq(b)
             }
+            (Self::LeadingDotExpression(a), Self::LeadingDotExpression(b)) => a.content_eq(b),
             (Self::ComputedMemberExpression(a), Self::ComputedMemberExpression(b)) => {
                 a.content_eq(b)
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -532,9 +522,6 @@ impl ContentEq for AssignmentTarget<'_> {
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             (Self::ArrayAssignmentTarget(a), Self::ArrayAssignmentTarget(b)) => a.content_eq(b),
             (Self::ObjectAssignmentTarget(a), Self::ObjectAssignmentTarget(b)) => a.content_eq(b),
             _ => false,
@@ -557,9 +544,6 @@ impl ContentEq for SimpleAssignmentTarget<'_> {
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -613,9 +597,6 @@ impl ContentEq for AssignmentTargetMaybeDefault<'_> {
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             (Self::ArrayAssignmentTarget(a), Self::ArrayAssignmentTarget(b)) => a.content_eq(b),
             (Self::ObjectAssignmentTarget(a), Self::ObjectAssignmentTarget(b)) => a.content_eq(b),
             _ => false,
@@ -695,9 +676,6 @@ impl ContentEq for ChainElement<'_> {
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -915,14 +893,12 @@ impl ContentEq for ForStatementInit<'_> {
             (Self::ArkUIComponentExpression(a), Self::ArkUIComponentExpression(b)) => {
                 a.content_eq(b)
             }
+            (Self::LeadingDotExpression(a), Self::LeadingDotExpression(b)) => a.content_eq(b),
             (Self::ComputedMemberExpression(a), Self::ComputedMemberExpression(b)) => {
                 a.content_eq(b)
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -952,9 +928,6 @@ impl ContentEq for ForStatementLeft<'_> {
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             (Self::ArrayAssignmentTarget(a), Self::ArrayAssignmentTarget(b)) => a.content_eq(b),
             (Self::ObjectAssignmentTarget(a), Self::ObjectAssignmentTarget(b)) => a.content_eq(b),
             _ => false,
@@ -1510,14 +1483,12 @@ impl ContentEq for ExportDefaultDeclarationKind<'_> {
             (Self::ArkUIComponentExpression(a), Self::ArkUIComponentExpression(b)) => {
                 a.content_eq(b)
             }
+            (Self::LeadingDotExpression(a), Self::LeadingDotExpression(b)) => a.content_eq(b),
             (Self::ComputedMemberExpression(a), Self::ComputedMemberExpression(b)) => {
                 a.content_eq(b)
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }
@@ -1728,14 +1699,12 @@ impl ContentEq for JSXExpression<'_> {
             (Self::ArkUIComponentExpression(a), Self::ArkUIComponentExpression(b)) => {
                 a.content_eq(b)
             }
+            (Self::LeadingDotExpression(a), Self::LeadingDotExpression(b)) => a.content_eq(b),
             (Self::ComputedMemberExpression(a), Self::ComputedMemberExpression(b)) => {
                 a.content_eq(b)
             }
             (Self::StaticMemberExpression(a), Self::StaticMemberExpression(b)) => a.content_eq(b),
             (Self::PrivateFieldExpression(a), Self::PrivateFieldExpression(b)) => a.content_eq(b),
-            (Self::LeadingDotMemberExpression(a), Self::LeadingDotMemberExpression(b)) => {
-                a.content_eq(b)
-            }
             _ => false,
         }
     }

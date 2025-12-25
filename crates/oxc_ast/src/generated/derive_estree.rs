@@ -64,10 +64,10 @@ impl ESTree for Expression<'_> {
             Self::TSInstantiationExpression(it) => it.serialize(serializer),
             Self::V8IntrinsicExpression(it) => it.serialize(serializer),
             Self::ArkUIComponentExpression(it) => it.serialize(serializer),
+            Self::LeadingDotExpression(it) => it.serialize(serializer),
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -189,10 +189,10 @@ impl ESTree for ArrayExpressionElement<'_> {
             Self::TSInstantiationExpression(it) => it.serialize(serializer),
             Self::V8IntrinsicExpression(it) => it.serialize(serializer),
             Self::ArkUIComponentExpression(it) => it.serialize(serializer),
+            Self::LeadingDotExpression(it) => it.serialize(serializer),
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -284,10 +284,10 @@ impl ESTree for PropertyKey<'_> {
             Self::TSInstantiationExpression(it) => it.serialize(serializer),
             Self::V8IntrinsicExpression(it) => it.serialize(serializer),
             Self::ArkUIComponentExpression(it) => it.serialize(serializer),
+            Self::LeadingDotExpression(it) => it.serialize(serializer),
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -346,7 +346,6 @@ impl ESTree for MemberExpression<'_> {
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -390,16 +389,9 @@ impl ESTree for PrivateFieldExpression<'_> {
     }
 }
 
-impl ESTree for LeadingDotMemberExpression<'_> {
+impl ESTree for LeadingDotExpression<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) {
-        let mut state = serializer.serialize_struct();
-        state.serialize_field("type", &JsonSafeString("MemberExpression"));
-        state.serialize_field("property", &self.property);
-        state.serialize_field("optional", &self.optional);
-        state.serialize_field("rest", &self.rest);
-        state.serialize_field("computed", &crate::serialize::basic::False(self));
-        state.serialize_span(self.span);
-        state.end();
+        crate::serialize::js::LeadingDotExpressionConverter(self).serialize(serializer)
     }
 }
 
@@ -494,10 +486,10 @@ impl ESTree for Argument<'_> {
             Self::TSInstantiationExpression(it) => it.serialize(serializer),
             Self::V8IntrinsicExpression(it) => it.serialize(serializer),
             Self::ArkUIComponentExpression(it) => it.serialize(serializer),
+            Self::LeadingDotExpression(it) => it.serialize(serializer),
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -597,7 +589,6 @@ impl ESTree for AssignmentTarget<'_> {
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
             Self::ArrayAssignmentTarget(it) => it.serialize(serializer),
             Self::ObjectAssignmentTarget(it) => it.serialize(serializer),
         }
@@ -615,7 +606,6 @@ impl ESTree for SimpleAssignmentTarget<'_> {
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -681,7 +671,6 @@ impl ESTree for AssignmentTargetMaybeDefault<'_> {
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
             Self::ArrayAssignmentTarget(it) => it.serialize(serializer),
             Self::ObjectAssignmentTarget(it) => it.serialize(serializer),
         }
@@ -793,7 +782,6 @@ impl ESTree for ChainElement<'_> {
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -1039,10 +1027,10 @@ impl ESTree for ForStatementInit<'_> {
             Self::TSInstantiationExpression(it) => it.serialize(serializer),
             Self::V8IntrinsicExpression(it) => it.serialize(serializer),
             Self::ArkUIComponentExpression(it) => it.serialize(serializer),
+            Self::LeadingDotExpression(it) => it.serialize(serializer),
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -1071,7 +1059,6 @@ impl ESTree for ForStatementLeft<'_> {
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
             Self::ArrayAssignmentTarget(it) => it.serialize(serializer),
             Self::ObjectAssignmentTarget(it) => it.serialize(serializer),
         }
@@ -1814,10 +1801,10 @@ impl ESTree for ExportDefaultDeclarationKind<'_> {
             Self::TSInstantiationExpression(it) => it.serialize(serializer),
             Self::V8IntrinsicExpression(it) => it.serialize(serializer),
             Self::ArkUIComponentExpression(it) => it.serialize(serializer),
+            Self::LeadingDotExpression(it) => it.serialize(serializer),
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }
@@ -2114,10 +2101,10 @@ impl ESTree for JSXExpression<'_> {
             Self::TSInstantiationExpression(it) => it.serialize(serializer),
             Self::V8IntrinsicExpression(it) => it.serialize(serializer),
             Self::ArkUIComponentExpression(it) => it.serialize(serializer),
+            Self::LeadingDotExpression(it) => it.serialize(serializer),
             Self::ComputedMemberExpression(it) => it.serialize(serializer),
             Self::StaticMemberExpression(it) => it.serialize(serializer),
             Self::PrivateFieldExpression(it) => it.serialize(serializer),
-            Self::LeadingDotMemberExpression(it) => it.serialize(serializer),
         }
     }
 }

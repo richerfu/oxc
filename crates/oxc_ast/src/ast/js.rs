@@ -162,6 +162,8 @@ pub enum Expression<'a> {
     V8IntrinsicExpression(Box<'a, V8IntrinsicExpression<'a>>) = 39,
     /// See [`ArkUIComponentExpression`] for AST node details.
     ArkUIComponentExpression(Box<'a, ArkUIComponentExpression<'a>>) = 40,
+    /// See [`LeadingDotExpression`] for AST node details.
+    LeadingDotExpression(Box<'a, LeadingDotExpression<'a>>) = 41,
 
     // `MemberExpression` variants added here by `inherit_variants!` macro
     @inherit MemberExpression
@@ -215,9 +217,9 @@ macro_rules! match_expression {
             | $ty::ComputedMemberExpression(_)
             | $ty::StaticMemberExpression(_)
             | $ty::PrivateFieldExpression(_)
-            | $ty::LeadingDotMemberExpression(_)
             | $ty::V8IntrinsicExpression(_)
             | $ty::ArkUIComponentExpression(_)
+            | $ty::LeadingDotExpression(_)
     };
 }
 pub use match_expression;
@@ -524,8 +526,6 @@ pub enum MemberExpression<'a> {
     StaticMemberExpression(Box<'a, StaticMemberExpression<'a>>) = 49,
     /// `c.#a` in `class C { #a = 1; }; const c = new C(); c.#a;`
     PrivateFieldExpression(Box<'a, PrivateFieldExpression<'a>>) = 50,
-    /// `.property` in ArkUI leading-dot expressions like `.backgroundColor('#ffffeef0')`
-    LeadingDotMemberExpression(Box<'a, LeadingDotMemberExpression<'a>>) = 51,
 }
 
 /// Macro for matching `MemberExpression`'s variants.
@@ -535,7 +535,6 @@ macro_rules! match_member_expression {
         $ty::ComputedMemberExpression(_)
             | $ty::StaticMemberExpression(_)
             | $ty::PrivateFieldExpression(_)
-            | $ty::LeadingDotMemberExpression(_)
     };
 }
 pub use match_member_expression;
@@ -584,23 +583,24 @@ pub struct PrivateFieldExpression<'a> {
     pub optional: bool, // for optional chaining
 }
 
-/// `.property` in ArkUI leading-dot expressions like `.backgroundColor('#ffffeef0')`
+/// `.property()` in ArkUI leading-dot expressions like `.backgroundColor('#ffffeef0')`
 ///
-/// Represents a leading-dot member access expression used in ArkUI.
-/// This is a special form where the object (`this`) is implicit and only the dot and property are present.
-/// Unlike `StaticMemberExpression`, this type explicitly marks expressions that start with a dot,
-/// allowing formatters and code generators to handle them differently without runtime checks.
+/// Represents a leading-dot expression used in ArkUI.
+/// This is similar to `CallExpression`, but starts with a dot and property name.
+/// The object (`this`) is implicit. This expression can be used in function blocks
+/// and object literal blocks.
 #[ast(visit)]
 #[derive(Debug)]
 #[generate_derive(CloneIn, Dummy, TakeIn, GetSpan, GetSpanMut, ContentEq, ESTree, UnstableAddress)]
-#[estree(rename = "MemberExpression", add_fields(computed = False))]
-pub struct LeadingDotMemberExpression<'a> {
+#[estree(via = LeadingDotExpressionConverter)]
+pub struct LeadingDotExpression<'a> {
     pub span: Span,
+    /// The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
     pub property: IdentifierName<'a>,
     pub optional: bool, // for optional chaining
-    /// The rest of the member chain (e.g., `.property.method()`)
-    /// This allows chaining multiple leading-dot expressions together
-    pub rest: Option<Expression<'a>>,
+    #[ts]
+    pub type_arguments: Option<Box<'a, TSTypeParameterInstantiation<'a>>>,
+    pub arguments: Vec<'a, Argument<'a>>,
 }
 
 /// `foo()` in `function foo() { return 1; }; foo();`
@@ -842,7 +842,6 @@ macro_rules! match_assignment_target {
             | $ty::ComputedMemberExpression(_)
             | $ty::StaticMemberExpression(_)
             | $ty::PrivateFieldExpression(_)
-            | $ty::LeadingDotMemberExpression(_)
             | $ty::TSAsExpression(_)
             | $ty::TSSatisfiesExpression(_)
             | $ty::TSNonNullExpression(_)
@@ -862,7 +861,6 @@ macro_rules! match_simple_assignment_target {
             | $ty::ComputedMemberExpression(_)
             | $ty::StaticMemberExpression(_)
             | $ty::PrivateFieldExpression(_)
-            | $ty::LeadingDotMemberExpression(_)
             | $ty::TSAsExpression(_)
             | $ty::TSSatisfiesExpression(_)
             | $ty::TSNonNullExpression(_)

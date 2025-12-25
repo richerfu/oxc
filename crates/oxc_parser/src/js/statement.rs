@@ -203,15 +203,6 @@ impl<'a> ParserImpl<'a> {
     fn parse_expression_or_labeled_statement(&mut self) -> Statement<'a> {
         let span = self.start_span();
 
-        // Handle ArkUI @Extend function body expressions starting with dots
-        // Example: @Extend(Text) function foo() { .textOverflow(...) }
-        // These should be parsed as LeadingDotMemberExpression, not converted to this.property
-        if self.source_type.is_arkui() && self.ctx.has_return() && self.at(Kind::Dot) {
-            // Parse as leading-dot expression (allows chaining like .method1().method2())
-            let expr = self.parse_leading_dot_expression(true);
-            return self.parse_expression_statement(span, expr);
-        }
-
         let expr = self.parse_expr();
         if let Expression::Identifier(ident) = &expr {
             // Section 14.13 Labelled Statement

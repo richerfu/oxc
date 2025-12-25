@@ -200,10 +200,12 @@ unsafe fn walk_expression<'a, State, Tr: Traverse<'a, State>>(
         Expression::ArkUIComponentExpression(node) => {
             walk_ark_u_i_component_expression(traverser, (&mut **node) as *mut _, ctx)
         }
+        Expression::LeadingDotExpression(node) => {
+            walk_leading_dot_expression(traverser, (&mut **node) as *mut _, ctx)
+        }
         Expression::ComputedMemberExpression(_)
         | Expression::StaticMemberExpression(_)
-        | Expression::PrivateFieldExpression(_)
-        | Expression::LeadingDotMemberExpression(_) => {
+        | Expression::PrivateFieldExpression(_) => {
             walk_member_expression(traverser, node as *mut _, ctx)
         }
     }
@@ -325,10 +327,10 @@ unsafe fn walk_array_expression_element<'a, State, Tr: Traverse<'a, State>>(
         | ArrayExpressionElement::TSInstantiationExpression(_)
         | ArrayExpressionElement::V8IntrinsicExpression(_)
         | ArrayExpressionElement::ArkUIComponentExpression(_)
+        | ArrayExpressionElement::LeadingDotExpression(_)
         | ArrayExpressionElement::ComputedMemberExpression(_)
         | ArrayExpressionElement::StaticMemberExpression(_)
-        | ArrayExpressionElement::PrivateFieldExpression(_)
-        | ArrayExpressionElement::LeadingDotMemberExpression(_) => {
+        | ArrayExpressionElement::PrivateFieldExpression(_) => {
             walk_expression(traverser, node as *mut _, ctx)
         }
     }
@@ -457,12 +459,10 @@ unsafe fn walk_property_key<'a, State, Tr: Traverse<'a, State>>(
         | PropertyKey::TSInstantiationExpression(_)
         | PropertyKey::V8IntrinsicExpression(_)
         | PropertyKey::ArkUIComponentExpression(_)
+        | PropertyKey::LeadingDotExpression(_)
         | PropertyKey::ComputedMemberExpression(_)
         | PropertyKey::StaticMemberExpression(_)
-        | PropertyKey::PrivateFieldExpression(_)
-        | PropertyKey::LeadingDotMemberExpression(_) => {
-            walk_expression(traverser, node as *mut _, ctx)
-        }
+        | PropertyKey::PrivateFieldExpression(_) => walk_expression(traverser, node as *mut _, ctx),
     }
     traverser.exit_property_key(&mut *node, ctx);
 }
@@ -548,9 +548,6 @@ unsafe fn walk_member_expression<'a, State, Tr: Traverse<'a, State>>(
         MemberExpression::PrivateFieldExpression(node) => {
             walk_private_field_expression(traverser, (&mut **node) as *mut _, ctx)
         }
-        MemberExpression::LeadingDotMemberExpression(node) => {
-            walk_leading_dot_member_expression(traverser, (&mut **node) as *mut _, ctx)
-        }
     }
     traverser.exit_member_expression(&mut *node, ctx);
 }
@@ -631,30 +628,36 @@ unsafe fn walk_private_field_expression<'a, State, Tr: Traverse<'a, State>>(
     traverser.exit_private_field_expression(&mut *node, ctx);
 }
 
-unsafe fn walk_leading_dot_member_expression<'a, State, Tr: Traverse<'a, State>>(
+unsafe fn walk_leading_dot_expression<'a, State, Tr: Traverse<'a, State>>(
     traverser: &mut Tr,
-    node: *mut LeadingDotMemberExpression<'a>,
+    node: *mut LeadingDotExpression<'a>,
     ctx: &mut TraverseCtx<'a, State>,
 ) {
-    traverser.enter_leading_dot_member_expression(&mut *node, ctx);
-    let pop_token = ctx.push_stack(Ancestor::LeadingDotMemberExpressionProperty(
-        ancestor::LeadingDotMemberExpressionWithoutProperty(node, PhantomData),
+    traverser.enter_leading_dot_expression(&mut *node, ctx);
+    let pop_token = ctx.push_stack(Ancestor::LeadingDotExpressionProperty(
+        ancestor::LeadingDotExpressionWithoutProperty(node, PhantomData),
     ));
     walk_identifier_name(
         traverser,
-        (node as *mut u8).add(ancestor::OFFSET_LEADING_DOT_MEMBER_EXPRESSION_PROPERTY)
+        (node as *mut u8).add(ancestor::OFFSET_LEADING_DOT_EXPRESSION_PROPERTY)
             as *mut IdentifierName,
         ctx,
     );
     if let Some(field) = &mut *((node as *mut u8)
-        .add(ancestor::OFFSET_LEADING_DOT_MEMBER_EXPRESSION_REST)
-        as *mut Option<Expression>)
+        .add(ancestor::OFFSET_LEADING_DOT_EXPRESSION_TYPE_ARGUMENTS)
+        as *mut Option<Box<TSTypeParameterInstantiation>>)
     {
-        ctx.retag_stack(AncestorType::LeadingDotMemberExpressionRest);
-        walk_expression(traverser, field as *mut _, ctx);
+        ctx.retag_stack(AncestorType::LeadingDotExpressionTypeArguments);
+        walk_ts_type_parameter_instantiation(traverser, (&mut **field) as *mut _, ctx);
+    }
+    ctx.retag_stack(AncestorType::LeadingDotExpressionArguments);
+    for item in &mut *((node as *mut u8).add(ancestor::OFFSET_LEADING_DOT_EXPRESSION_ARGUMENTS)
+        as *mut Vec<Argument>)
+    {
+        walk_argument(traverser, item as *mut _, ctx);
     }
     ctx.pop_stack(pop_token);
-    traverser.exit_leading_dot_member_expression(&mut *node, ctx);
+    traverser.exit_leading_dot_expression(&mut *node, ctx);
 }
 
 unsafe fn walk_call_expression<'a, State, Tr: Traverse<'a, State>>(
@@ -813,12 +816,10 @@ unsafe fn walk_argument<'a, State, Tr: Traverse<'a, State>>(
         | Argument::TSInstantiationExpression(_)
         | Argument::V8IntrinsicExpression(_)
         | Argument::ArkUIComponentExpression(_)
+        | Argument::LeadingDotExpression(_)
         | Argument::ComputedMemberExpression(_)
         | Argument::StaticMemberExpression(_)
-        | Argument::PrivateFieldExpression(_)
-        | Argument::LeadingDotMemberExpression(_) => {
-            walk_expression(traverser, node as *mut _, ctx)
-        }
+        | Argument::PrivateFieldExpression(_) => walk_expression(traverser, node as *mut _, ctx),
     }
     traverser.exit_argument(&mut *node, ctx);
 }
@@ -1002,8 +1003,7 @@ unsafe fn walk_assignment_target<'a, State, Tr: Traverse<'a, State>>(
         | AssignmentTarget::TSTypeAssertion(_)
         | AssignmentTarget::ComputedMemberExpression(_)
         | AssignmentTarget::StaticMemberExpression(_)
-        | AssignmentTarget::PrivateFieldExpression(_)
-        | AssignmentTarget::LeadingDotMemberExpression(_) => {
+        | AssignmentTarget::PrivateFieldExpression(_) => {
             walk_simple_assignment_target(traverser, node as *mut _, ctx)
         }
         AssignmentTarget::ArrayAssignmentTarget(_)
@@ -1038,8 +1038,7 @@ unsafe fn walk_simple_assignment_target<'a, State, Tr: Traverse<'a, State>>(
         }
         SimpleAssignmentTarget::ComputedMemberExpression(_)
         | SimpleAssignmentTarget::StaticMemberExpression(_)
-        | SimpleAssignmentTarget::PrivateFieldExpression(_)
-        | SimpleAssignmentTarget::LeadingDotMemberExpression(_) => {
+        | SimpleAssignmentTarget::PrivateFieldExpression(_) => {
             walk_member_expression(traverser, node as *mut _, ctx)
         }
     }
@@ -1152,8 +1151,7 @@ unsafe fn walk_assignment_target_maybe_default<'a, State, Tr: Traverse<'a, State
         | AssignmentTargetMaybeDefault::ObjectAssignmentTarget(_)
         | AssignmentTargetMaybeDefault::ComputedMemberExpression(_)
         | AssignmentTargetMaybeDefault::StaticMemberExpression(_)
-        | AssignmentTargetMaybeDefault::PrivateFieldExpression(_)
-        | AssignmentTargetMaybeDefault::LeadingDotMemberExpression(_) => {
+        | AssignmentTargetMaybeDefault::PrivateFieldExpression(_) => {
             walk_assignment_target(traverser, node as *mut _, ctx)
         }
     }
@@ -1333,8 +1331,7 @@ unsafe fn walk_chain_element<'a, State, Tr: Traverse<'a, State>>(
         }
         ChainElement::ComputedMemberExpression(_)
         | ChainElement::StaticMemberExpression(_)
-        | ChainElement::PrivateFieldExpression(_)
-        | ChainElement::LeadingDotMemberExpression(_) => {
+        | ChainElement::PrivateFieldExpression(_) => {
             walk_member_expression(traverser, node as *mut _, ctx)
         }
     }
@@ -1784,10 +1781,10 @@ unsafe fn walk_for_statement_init<'a, State, Tr: Traverse<'a, State>>(
         | ForStatementInit::TSInstantiationExpression(_)
         | ForStatementInit::V8IntrinsicExpression(_)
         | ForStatementInit::ArkUIComponentExpression(_)
+        | ForStatementInit::LeadingDotExpression(_)
         | ForStatementInit::ComputedMemberExpression(_)
         | ForStatementInit::StaticMemberExpression(_)
-        | ForStatementInit::PrivateFieldExpression(_)
-        | ForStatementInit::LeadingDotMemberExpression(_) => {
+        | ForStatementInit::PrivateFieldExpression(_) => {
             walk_expression(traverser, node as *mut _, ctx)
         }
     }
@@ -1850,8 +1847,7 @@ unsafe fn walk_for_statement_left<'a, State, Tr: Traverse<'a, State>>(
         | ForStatementLeft::ObjectAssignmentTarget(_)
         | ForStatementLeft::ComputedMemberExpression(_)
         | ForStatementLeft::StaticMemberExpression(_)
-        | ForStatementLeft::PrivateFieldExpression(_)
-        | ForStatementLeft::LeadingDotMemberExpression(_) => {
+        | ForStatementLeft::PrivateFieldExpression(_) => {
             walk_assignment_target(traverser, node as *mut _, ctx)
         }
     }
@@ -3259,10 +3255,10 @@ unsafe fn walk_export_default_declaration_kind<'a, State, Tr: Traverse<'a, State
         | ExportDefaultDeclarationKind::TSInstantiationExpression(_)
         | ExportDefaultDeclarationKind::V8IntrinsicExpression(_)
         | ExportDefaultDeclarationKind::ArkUIComponentExpression(_)
+        | ExportDefaultDeclarationKind::LeadingDotExpression(_)
         | ExportDefaultDeclarationKind::ComputedMemberExpression(_)
         | ExportDefaultDeclarationKind::StaticMemberExpression(_)
-        | ExportDefaultDeclarationKind::PrivateFieldExpression(_)
-        | ExportDefaultDeclarationKind::LeadingDotMemberExpression(_) => {
+        | ExportDefaultDeclarationKind::PrivateFieldExpression(_) => {
             walk_expression(traverser, node as *mut _, ctx)
         }
     }
@@ -3609,10 +3605,10 @@ unsafe fn walk_jsx_expression<'a, State, Tr: Traverse<'a, State>>(
         | JSXExpression::TSInstantiationExpression(_)
         | JSXExpression::V8IntrinsicExpression(_)
         | JSXExpression::ArkUIComponentExpression(_)
+        | JSXExpression::LeadingDotExpression(_)
         | JSXExpression::ComputedMemberExpression(_)
         | JSXExpression::StaticMemberExpression(_)
-        | JSXExpression::PrivateFieldExpression(_)
-        | JSXExpression::LeadingDotMemberExpression(_) => {
+        | JSXExpression::PrivateFieldExpression(_) => {
             walk_expression(traverser, node as *mut _, ctx)
         }
     }

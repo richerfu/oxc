@@ -267,10 +267,7 @@ fn can_be_fixed(target: &AssignmentTarget) -> bool {
         MemberExpression::StaticMemberExpression(static_expr) => {
             matches!(static_expr.object, Expression::Identifier(_) | Expression::ThisExpression(_))
         }
-        MemberExpression::LeadingDotMemberExpression(_) => {
-            // LeadingDotMemberExpression has implicit `this`, can be used in operator assignment
-            true
-        }
+        // LeadingDotExpression is now a separate Expression type, not a MemberExpression
         MemberExpression::PrivateFieldExpression(_) => false,
     }
 }

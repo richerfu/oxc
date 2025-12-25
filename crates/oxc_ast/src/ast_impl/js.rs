@@ -580,50 +580,24 @@ impl<'a> MemberExpression<'a> {
             MemberExpression::ComputedMemberExpression(expr) => expr.optional,
             MemberExpression::StaticMemberExpression(expr) => expr.optional,
             MemberExpression::PrivateFieldExpression(expr) => expr.optional,
-            MemberExpression::LeadingDotMemberExpression(expr) => expr.optional,
         }
     }
 
     /// Returns a reference to the [`Expression`] that is the object of this member expression.
-    ///
-    /// # Panics
-    ///
-    /// Panics if called on a `LeadingDotMemberExpression`, which has no object field.
-    /// Use [`MemberExpression::is_leading_dot()`] to check before calling this method.
     pub fn object(&self) -> &Expression<'a> {
         match self {
             MemberExpression::ComputedMemberExpression(expr) => &expr.object,
             MemberExpression::StaticMemberExpression(expr) => &expr.object,
             MemberExpression::PrivateFieldExpression(expr) => &expr.object,
-            MemberExpression::LeadingDotMemberExpression(_) => {
-                panic!(
-                    "LeadingDotMemberExpression has no object field - use is_leading_dot() to check"
-                )
-            }
         }
     }
 
-    /// Returns `true` if this is a `LeadingDotMemberExpression`.
-    pub fn is_leading_dot(&self) -> bool {
-        matches!(self, MemberExpression::LeadingDotMemberExpression(_))
-    }
-
     /// Returns a mutable reference to the [`Expression`] that is the object of this member expression.
-    ///
-    /// # Panics
-    ///
-    /// Panics if called on a `LeadingDotMemberExpression`, which has no object field.
-    /// Use [`MemberExpression::is_leading_dot()`] to check before calling this method.
     pub fn object_mut(&mut self) -> &mut Expression<'a> {
         match self {
             MemberExpression::ComputedMemberExpression(expr) => &mut expr.object,
             MemberExpression::StaticMemberExpression(expr) => &mut expr.object,
             MemberExpression::PrivateFieldExpression(expr) => &mut expr.object,
-            MemberExpression::LeadingDotMemberExpression(_) => {
-                panic!(
-                    "LeadingDotMemberExpression has no object field - use is_leading_dot() to check"
-                )
-            }
         }
     }
 
@@ -644,7 +618,6 @@ impl<'a> MemberExpression<'a> {
             }
             MemberExpression::StaticMemberExpression(expr) => Some(expr.property.name.as_str()),
             MemberExpression::PrivateFieldExpression(_) => None,
-            MemberExpression::LeadingDotMemberExpression(expr) => Some(expr.property.name.as_str()),
         }
     }
 
@@ -669,21 +642,12 @@ impl<'a> MemberExpression<'a> {
                 Some((expr.property.span, expr.property.name.as_str()))
             }
             MemberExpression::PrivateFieldExpression(_) => None,
-            MemberExpression::LeadingDotMemberExpression(expr) => {
-                Some((expr.property.span, expr.property.name.as_str()))
-            }
         }
     }
 
     /// Returns `true` if this member expression is a specific member access such as `a.b`, and takes
     /// into account whether it might also be an optionally chained member access such as `a?.b`.
     pub fn through_optional_is_specific_member_access(&self, object: &str, property: &str) -> bool {
-        // LeadingDotMemberExpression has an implicit `this` object
-        if self.is_leading_dot() {
-            if let MemberExpression::LeadingDotMemberExpression(expr) = self {
-                return object == "this" && expr.property.name.as_str() == property;
-            }
-        }
         let object_matches = match self.object().without_parentheses() {
             Expression::ChainExpression(x) => match x.expression.member_expression() {
                 None => false,

@@ -1775,6 +1775,9 @@ impl<'a> Visit<'a> for SemanticBuilder<'a> {
             &func.scope_id,
         );
 
+        self.visit_span(&func.span);
+        self.visit_decorators(&func.decorators);
+
         if func.is_expression() {
             // We need to bind function expression in the function scope
             func.bind(self);
@@ -1947,15 +1950,21 @@ impl<'a> Visit<'a> for SemanticBuilder<'a> {
             }
             MemberExpression::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             MemberExpression::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            MemberExpression::LeadingDotMemberExpression(it) => {
-                // LeadingDotMemberExpression has implicit `this` object
-                // Visit the property and rest chain if present
-                self.visit_identifier_name(&it.property);
-                if let Some(rest) = &it.rest {
-                    self.visit_expression(rest);
-                }
-            }
         }
+    }
+
+    fn visit_leading_dot_expression(&mut self, it: &LeadingDotExpression<'a>) {
+        let kind = AstKind::LeadingDotExpression(self.alloc(it));
+        self.enter_node(kind);
+        self.visit_span(&it.span);
+        self.visit_identifier_name(&it.property);
+        if let Some(type_arguments) = &it.type_arguments {
+            self.visit_ts_type_parameter_instantiation(type_arguments);
+        }
+        for arg in &it.arguments {
+            self.visit_argument(arg);
+        }
+        self.leave_node(kind);
     }
 
     fn visit_simple_assignment_target(&mut self, it: &SimpleAssignmentTarget<'a>) {

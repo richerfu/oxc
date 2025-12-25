@@ -126,10 +126,10 @@ impl<'a> Format<'a> for ChainMember<'a, '_> {
                 member.format_trailing_comments(f);
             }
             Self::Node(node) => {
-                // ArkUI: skip printing `this` ONLY if this is a LeadingDotMemberExpression
+                // ArkUI: skip printing `this` ONLY if this is a LeadingDotExpression
                 // For regular `this.property`, we should still print `this`
-                // The check for LeadingDotMemberExpression is done in MemberChain::fmt
-                // by checking if the first member is LeadingDotMemberExpression
+                // The check for LeadingDotExpression is done in MemberChain::fmt
+                // by checking if the first member is LeadingDotExpression
                 write!(f, node);
             }
         }

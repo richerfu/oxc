@@ -153,14 +153,14 @@ function constructExpression(pos, ast) {
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
     case 40:
       return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 41:
+      return constructBoxLeadingDotExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for Expression`);
   }
@@ -533,14 +533,14 @@ function constructArrayExpressionElement(pos, ast) {
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
     case 40:
       return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 41:
+      return constructBoxLeadingDotExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxSpreadElement(pos + 8, ast);
     case 65:
@@ -809,14 +809,14 @@ function constructPropertyKey(pos, ast) {
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
     case 40:
       return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 41:
+      return constructBoxLeadingDotExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxIdentifierName(pos + 8, ast);
     case 65:
@@ -1055,8 +1055,6 @@ function constructMemberExpression(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for MemberExpression`);
   }
@@ -1236,8 +1234,8 @@ export class PrivateFieldExpression {
 
 const DebugPrivateFieldExpression = class PrivateFieldExpression {};
 
-export class LeadingDotMemberExpression {
-  type = "LeadingDotMemberExpression";
+export class LeadingDotExpression {
+  type = "LeadingDotExpression";
   #internal;
 
   constructor(pos, ast) {
@@ -1247,7 +1245,7 @@ export class LeadingDotMemberExpression {
     const cached = nodes.get(pos);
     if (cached !== void 0) return cached;
 
-    this.#internal = { pos, ast };
+    this.#internal = { pos, ast, $arguments: void 0 };
     nodes.set(pos, this);
   }
 
@@ -1268,31 +1266,39 @@ export class LeadingDotMemberExpression {
 
   get optional() {
     const internal = this.#internal;
-    return constructBool(internal.pos + 48, internal.ast);
+    return constructBool(internal.pos + 64, internal.ast);
   }
 
-  get rest() {
+  get typeArguments() {
     const internal = this.#internal;
-    return constructOptionExpression(internal.pos + 32, internal.ast);
+    return constructOptionBoxTSTypeParameterInstantiation(internal.pos + 32, internal.ast);
+  }
+
+  get arguments() {
+    const internal = this.#internal,
+      cached = internal.$arguments;
+    if (cached !== void 0) return cached;
+    return (internal.$arguments = constructVecArgument(internal.pos + 40, internal.ast));
   }
 
   toJSON() {
     return {
-      type: "LeadingDotMemberExpression",
+      type: "LeadingDotExpression",
       start: this.start,
       end: this.end,
       property: this.property,
       optional: this.optional,
-      rest: this.rest,
+      typeArguments: this.typeArguments,
+      arguments: this.arguments,
     };
   }
 
   [inspectSymbol]() {
-    return Object.setPrototypeOf(this.toJSON(), DebugLeadingDotMemberExpression.prototype);
+    return Object.setPrototypeOf(this.toJSON(), DebugLeadingDotExpression.prototype);
   }
 }
 
-const DebugLeadingDotMemberExpression = class LeadingDotMemberExpression {};
+const DebugLeadingDotExpression = class LeadingDotExpression {};
 
 export class CallExpression {
   type = "CallExpression";
@@ -1602,14 +1608,14 @@ function constructArgument(pos, ast) {
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
     case 40:
       return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 41:
+      return constructBoxLeadingDotExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxSpreadElement(pos + 8, ast);
     default:
@@ -2033,8 +2039,6 @@ function constructAssignmentTarget(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for AssignmentTarget`);
   }
@@ -2058,8 +2062,6 @@ function constructSimpleAssignmentTarget(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for SimpleAssignmentTarget`);
   }
@@ -2248,8 +2250,6 @@ function constructAssignmentTargetMaybeDefault(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(
         `Unexpected discriminant ${ast.buffer[pos]} for AssignmentTargetMaybeDefault`,
@@ -2622,8 +2622,6 @@ function constructChainElement(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ChainElement`);
   }
@@ -3463,14 +3461,14 @@ function constructForStatementInit(pos, ast) {
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
     case 40:
       return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 41:
+      return constructBoxLeadingDotExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxVariableDeclaration(pos + 8, ast);
     default:
@@ -3560,8 +3558,6 @@ function constructForStatementLeft(pos, ast) {
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     default:
       throw new Error(`Unexpected discriminant ${ast.buffer[pos]} for ForStatementLeft`);
   }
@@ -6360,14 +6356,14 @@ function constructExportDefaultDeclarationKind(pos, ast) {
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
     case 40:
       return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 41:
+      return constructBoxLeadingDotExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return constructBoxFunction(pos + 8, ast);
     case 65:
@@ -7424,14 +7420,14 @@ function constructJSXExpression(pos, ast) {
       return constructBoxV8IntrinsicExpression(pos + 8, ast);
     case 40:
       return constructBoxArkUIComponentExpression(pos + 8, ast);
+    case 41:
+      return constructBoxLeadingDotExpression(pos + 8, ast);
     case 48:
       return constructBoxComputedMemberExpression(pos + 8, ast);
     case 49:
       return constructBoxStaticMemberExpression(pos + 8, ast);
     case 50:
       return constructBoxPrivateFieldExpression(pos + 8, ast);
-    case 51:
-      return constructBoxLeadingDotMemberExpression(pos + 8, ast);
     case 64:
       return new JSXEmptyExpression(pos + 8, ast);
     default:
@@ -13239,6 +13235,10 @@ function constructBoxArkUIComponentExpression(pos, ast) {
   return new ArkUIComponentExpression(ast.buffer.uint32[pos >> 2], ast);
 }
 
+function constructBoxLeadingDotExpression(pos, ast) {
+  return new LeadingDotExpression(ast.buffer.uint32[pos >> 2], ast);
+}
+
 function constructVecArrayExpressionElement(pos, ast) {
   const { uint32 } = ast.buffer,
     pos32 = pos >> 2;
@@ -13313,15 +13313,6 @@ function constructBoxPrivateFieldExpression(pos, ast) {
   return new PrivateFieldExpression(ast.buffer.uint32[pos >> 2], ast);
 }
 
-function constructBoxLeadingDotMemberExpression(pos, ast) {
-  return new LeadingDotMemberExpression(ast.buffer.uint32[pos >> 2], ast);
-}
-
-function constructOptionExpression(pos, ast) {
-  if (ast.buffer[pos] === 52) return null;
-  return constructExpression(pos, ast);
-}
-
 function constructVecArgument(pos, ast) {
   const { uint32 } = ast.buffer,
     pos32 = pos >> 2;
@@ -13337,7 +13328,7 @@ function constructBoxObjectAssignmentTarget(pos, ast) {
 }
 
 function constructOptionAssignmentTargetMaybeDefault(pos, ast) {
-  if (ast.buffer[pos] === 52) return null;
+  if (ast.buffer[pos] === 51) return null;
   return constructAssignmentTargetMaybeDefault(pos, ast);
 }
 
@@ -13384,6 +13375,11 @@ function constructBoxAssignmentTargetPropertyIdentifier(pos, ast) {
 
 function constructBoxAssignmentTargetPropertyProperty(pos, ast) {
   return new AssignmentTargetPropertyProperty(ast.buffer.uint32[pos >> 2], ast);
+}
+
+function constructOptionExpression(pos, ast) {
+  if (ast.buffer[pos] === 51) return null;
+  return constructExpression(pos, ast);
 }
 
 function constructBoxBlockStatement(pos, ast) {

@@ -57,10 +57,9 @@ impl<'a> ParserImpl<'a> {
         // Parse expression statements until closing brace
         while !self.at(Kind::RCurly) && !self.has_fatal_error() {
             if self.at(Kind::Dot) {
-                // Parse expression statement starting with dot as LeadingDotMemberExpression
-                // Allow chaining (e.g., .borderRadius(20).borderWidth(1)) - it will stop at comma/semicolon/brace
+                // Parse expression statement starting with dot as LeadingDotExpression
                 let expr_span = self.start_span();
-                let expr = self.parse_leading_dot_expression(true);
+                let expr = self.parse_leading_dot_expression();
                 let expr_end_span = self.end_span(expr_span);
 
                 // Create a property with the expression as value
@@ -236,10 +235,9 @@ impl<'a> ParserImpl<'a> {
                 // Parse expression statements until closing brace
                 while !self.at(Kind::RCurly) && !self.has_fatal_error() {
                     if self.at(Kind::Dot) {
-                        // Parse expression statement starting with dot as LeadingDotMemberExpression
-                        // Allow chaining (e.g., .borderRadius(20).borderWidth(1)) - it will stop at comma/semicolon/brace
+                        // Parse expression statement starting with dot as LeadingDotExpression
                         let expr_span = self.start_span();
-                        let expr = self.parse_leading_dot_expression(true);
+                        let expr = self.parse_leading_dot_expression();
                         let expr_end_span = self.end_span(expr_span);
 
                         // Create a property with the expression as value

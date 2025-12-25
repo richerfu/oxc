@@ -146,8 +146,8 @@ pub trait Visit<'a>: Sized {
     }
 
     #[inline]
-    fn visit_leading_dot_member_expression(&mut self, it: &LeadingDotMemberExpression<'a>) {
-        walk_leading_dot_member_expression(self, it);
+    fn visit_leading_dot_expression(&mut self, it: &LeadingDotExpression<'a>) {
+        walk_leading_dot_expression(self, it);
     }
 
     #[inline]
@@ -1478,6 +1478,7 @@ pub mod walk {
             Expression::ArkUIComponentExpression(it) => {
                 visitor.visit_ark_ui_component_expression(it)
             }
+            Expression::LeadingDotExpression(it) => visitor.visit_leading_dot_expression(it),
             match_member_expression!(Expression) => {
                 visitor.visit_member_expression(it.to_member_expression())
             }
@@ -1647,9 +1648,6 @@ pub mod walk {
             MemberExpression::PrivateFieldExpression(it) => {
                 visitor.visit_private_field_expression(it)
             }
-            MemberExpression::LeadingDotMemberExpression(it) => {
-                visitor.visit_leading_dot_member_expression(it)
-            }
         }
     }
 
@@ -1693,17 +1691,18 @@ pub mod walk {
     }
 
     #[inline]
-    pub fn walk_leading_dot_member_expression<'a, V: Visit<'a>>(
+    pub fn walk_leading_dot_expression<'a, V: Visit<'a>>(
         visitor: &mut V,
-        it: &LeadingDotMemberExpression<'a>,
+        it: &LeadingDotExpression<'a>,
     ) {
-        let kind = AstKind::LeadingDotMemberExpression(visitor.alloc(it));
+        let kind = AstKind::LeadingDotExpression(visitor.alloc(it));
         visitor.enter_node(kind);
         visitor.visit_span(&it.span);
         visitor.visit_identifier_name(&it.property);
-        if let Some(rest) = &it.rest {
-            visitor.visit_expression(rest);
+        if let Some(type_arguments) = &it.type_arguments {
+            visitor.visit_ts_type_parameter_instantiation(type_arguments);
         }
+        visitor.visit_arguments(&it.arguments);
         visitor.leave_node(kind);
     }
 

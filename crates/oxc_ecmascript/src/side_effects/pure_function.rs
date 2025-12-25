@@ -79,10 +79,6 @@ fn extract_callee_path<'a>(callee: &'a Expression<'a>) -> Option<Vec<&'a str>> {
                 ChainElement::PrivateFieldExpression(_) => {
                     return None;
                 }
-                ChainElement::LeadingDotMemberExpression(_) => {
-                    // LeadingDotMemberExpression cannot be part of a pure function path
-                    return None;
-                }
             },
             Expression::ParenthesizedExpression(paren) => {
                 current = &paren.expression;

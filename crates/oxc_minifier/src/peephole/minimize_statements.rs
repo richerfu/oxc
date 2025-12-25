@@ -1405,10 +1405,7 @@ impl<'a> PeepholeOptimizations {
                         AssignmentTarget::StaticMemberExpression(member_expr) => {
                             Self::is_expression_that_reference_may_change(&member_expr.object, ctx)
                         }
-                        AssignmentTarget::LeadingDotMemberExpression(_) => {
-                            // LeadingDotMemberExpression cannot be assigned to (syntax error)
-                            false
-                        }
+                        // LeadingDotExpression is now a separate Expression type, not an AssignmentTarget
                         AssignmentTarget::ArrayAssignmentTarget(_)
                         | AssignmentTarget::ObjectAssignmentTarget(_)
                         | AssignmentTarget::TSAsExpression(_)

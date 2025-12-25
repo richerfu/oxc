@@ -21,7 +21,7 @@ impl<'a> FormatWrite<'a> for AstNode<'a, ComputedMemberExpression<'a>> {
 
 impl<'a> FormatWrite<'a> for AstNode<'a, StaticMemberExpression<'a>> {
     fn write(&self, f: &mut Formatter<'_, 'a>) {
-        // Note: LeadingDotMemberExpression is now handled separately, so we don't need
+        // Note: LeadingDotExpression is now handled separately, so we don't need
         // the base_is_this check here anymore
 
         let is_member_chain = {
@@ -161,21 +161,3 @@ impl<'a> FormatWrite<'a> for AstNode<'a, PrivateFieldExpression<'a>> {
     }
 }
 
-impl<'a> FormatWrite<'a> for AstNode<'a, LeadingDotMemberExpression<'a>> {
-    fn write(&self, f: &mut Formatter<'_, 'a>) {
-        // Print only the leading dot and property, with optional `?.`.
-        // For ArkUI leading-dot expressions, don't indent on line breaks (align with first dot)
-        write!(
-            f,
-            [group(&format_args!(
-                soft_line_break_or_space(),
-                operator_token(self.optional()),
-                self.property()
-            ))]
-        );
-
-        // Note: The `rest` field is currently not used in formatting.
-        // Chain expressions like `.property.method()` are handled by the parser
-        // creating separate CallExpression nodes, so we don't need to format `rest` here.
-    }
-}

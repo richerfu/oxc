@@ -1293,9 +1293,6 @@ pub fn check_unary_expression(unary_expr: &UnaryExpression, ctx: &SemanticBuilde
                     ChainElement::PrivateFieldExpression(e) => {
                         ctx.error(delete_private_field(e.field.span));
                     }
-                    ChainElement::LeadingDotMemberExpression(_) => {
-                        // LeadingDotMemberExpression cannot be deleted (syntax error)
-                    }
                     _ => {}
                 }
             }

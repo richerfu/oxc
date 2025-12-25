@@ -138,8 +138,8 @@ pub trait VisitMut<'a>: Sized {
     }
 
     #[inline]
-    fn visit_leading_dot_member_expression(&mut self, it: &mut LeadingDotMemberExpression<'a>) {
-        walk_leading_dot_member_expression(self, it);
+    fn visit_leading_dot_expression(&mut self, it: &mut LeadingDotExpression<'a>) {
+        walk_leading_dot_expression(self, it);
     }
 
     #[inline]
@@ -1473,6 +1473,7 @@ pub mod walk_mut {
             Expression::ArkUIComponentExpression(it) => {
                 visitor.visit_ark_ui_component_expression(it)
             }
+            Expression::LeadingDotExpression(it) => visitor.visit_leading_dot_expression(it),
             match_member_expression!(Expression) => {
                 visitor.visit_member_expression(it.to_member_expression_mut())
             }
@@ -1663,9 +1664,6 @@ pub mod walk_mut {
             MemberExpression::PrivateFieldExpression(it) => {
                 visitor.visit_private_field_expression(it)
             }
-            MemberExpression::LeadingDotMemberExpression(it) => {
-                visitor.visit_leading_dot_member_expression(it)
-            }
         }
     }
 
@@ -1709,17 +1707,18 @@ pub mod walk_mut {
     }
 
     #[inline]
-    pub fn walk_leading_dot_member_expression<'a, V: VisitMut<'a>>(
+    pub fn walk_leading_dot_expression<'a, V: VisitMut<'a>>(
         visitor: &mut V,
-        it: &mut LeadingDotMemberExpression<'a>,
+        it: &mut LeadingDotExpression<'a>,
     ) {
-        let kind = AstType::LeadingDotMemberExpression;
+        let kind = AstType::LeadingDotExpression;
         visitor.enter_node(kind);
         visitor.visit_span(&mut it.span);
         visitor.visit_identifier_name(&mut it.property);
-        if let Some(rest) = &mut it.rest {
-            visitor.visit_expression(rest);
+        if let Some(type_arguments) = &mut it.type_arguments {
+            visitor.visit_ts_type_parameter_instantiation(type_arguments);
         }
+        visitor.visit_arguments(&mut it.arguments);
         visitor.leave_node(kind);
     }
 

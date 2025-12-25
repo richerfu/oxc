@@ -1257,6 +1257,37 @@ impl<'a> AstBuilder<'a> {
         ))
     }
 
+    /// Build an [`Expression::LeadingDotExpression`].
+    ///
+    /// This node contains a [`LeadingDotExpression`] that will be stored in the memory arena.
+    ///
+    /// ## Parameters
+    /// * `span`: The [`Span`] covering this node
+    /// * `property`: The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
+    /// * `optional`
+    /// * `type_arguments`
+    /// * `arguments`
+    #[inline]
+    pub fn expression_leading_dot<T1>(
+        self,
+        span: Span,
+        property: IdentifierName<'a>,
+        optional: bool,
+        type_arguments: T1,
+        arguments: Vec<'a, Argument<'a>>,
+    ) -> Expression<'a>
+    where
+        T1: IntoIn<'a, Option<Box<'a, TSTypeParameterInstantiation<'a>>>>,
+    {
+        Expression::LeadingDotExpression(self.alloc_leading_dot_expression(
+            span,
+            property,
+            optional,
+            type_arguments,
+            arguments,
+        ))
+    }
+
     /// Build an [`IdentifierName`].
     ///
     /// If you want the built node to be allocated in the memory arena,
@@ -1916,28 +1947,6 @@ impl<'a> AstBuilder<'a> {
         )
     }
 
-    /// Build a [`MemberExpression::LeadingDotMemberExpression`].
-    ///
-    /// This node contains a [`LeadingDotMemberExpression`] that will be stored in the memory arena.
-    ///
-    /// ## Parameters
-    /// * `span`: The [`Span`] covering this node
-    /// * `property`
-    /// * `optional`
-    /// * `rest`: The rest of the member chain (e.g., `.property.method()`)
-    #[inline]
-    pub fn member_expression_leading_dot(
-        self,
-        span: Span,
-        property: IdentifierName<'a>,
-        optional: bool,
-        rest: Option<Expression<'a>>,
-    ) -> MemberExpression<'a> {
-        MemberExpression::LeadingDotMemberExpression(
-            self.alloc_leading_dot_member_expression(span, property, optional, rest),
-        )
-    }
-
     /// Build a [`ComputedMemberExpression`].
     ///
     /// If you want the built node to be allocated in the memory arena,
@@ -2067,47 +2076,63 @@ impl<'a> AstBuilder<'a> {
         Box::new_in(self.private_field_expression(span, object, field, optional), self.allocator)
     }
 
-    /// Build a [`LeadingDotMemberExpression`].
+    /// Build a [`LeadingDotExpression`].
     ///
     /// If you want the built node to be allocated in the memory arena,
-    /// use [`AstBuilder::alloc_leading_dot_member_expression`] instead.
+    /// use [`AstBuilder::alloc_leading_dot_expression`] instead.
     ///
     /// ## Parameters
     /// * `span`: The [`Span`] covering this node
-    /// * `property`
+    /// * `property`: The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
     /// * `optional`
-    /// * `rest`: The rest of the member chain (e.g., `.property.method()`)
+    /// * `type_arguments`
+    /// * `arguments`
     #[inline]
-    pub fn leading_dot_member_expression(
+    pub fn leading_dot_expression<T1>(
         self,
         span: Span,
         property: IdentifierName<'a>,
         optional: bool,
-        rest: Option<Expression<'a>>,
-    ) -> LeadingDotMemberExpression<'a> {
-        LeadingDotMemberExpression { span, property, optional, rest }
+        type_arguments: T1,
+        arguments: Vec<'a, Argument<'a>>,
+    ) -> LeadingDotExpression<'a>
+    where
+        T1: IntoIn<'a, Option<Box<'a, TSTypeParameterInstantiation<'a>>>>,
+    {
+        LeadingDotExpression {
+            span,
+            property,
+            optional,
+            type_arguments: type_arguments.into_in(self.allocator),
+            arguments,
+        }
     }
 
-    /// Build a [`LeadingDotMemberExpression`], and store it in the memory arena.
+    /// Build a [`LeadingDotExpression`], and store it in the memory arena.
     ///
     /// Returns a [`Box`] containing the newly-allocated node.
-    /// If you want a stack-allocated node, use [`AstBuilder::leading_dot_member_expression`] instead.
+    /// If you want a stack-allocated node, use [`AstBuilder::leading_dot_expression`] instead.
     ///
     /// ## Parameters
     /// * `span`: The [`Span`] covering this node
-    /// * `property`
+    /// * `property`: The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
     /// * `optional`
-    /// * `rest`: The rest of the member chain (e.g., `.property.method()`)
+    /// * `type_arguments`
+    /// * `arguments`
     #[inline]
-    pub fn alloc_leading_dot_member_expression(
+    pub fn alloc_leading_dot_expression<T1>(
         self,
         span: Span,
         property: IdentifierName<'a>,
         optional: bool,
-        rest: Option<Expression<'a>>,
-    ) -> Box<'a, LeadingDotMemberExpression<'a>> {
+        type_arguments: T1,
+        arguments: Vec<'a, Argument<'a>>,
+    ) -> Box<'a, LeadingDotExpression<'a>>
+    where
+        T1: IntoIn<'a, Option<Box<'a, TSTypeParameterInstantiation<'a>>>>,
+    {
         Box::new_in(
-            self.leading_dot_member_expression(span, property, optional, rest),
+            self.leading_dot_expression(span, property, optional, type_arguments, arguments),
             self.allocator,
         )
     }

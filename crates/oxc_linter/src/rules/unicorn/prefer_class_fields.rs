@@ -220,7 +220,7 @@ fn get_property_name<'a>(member: &MemberExpression<'a>) -> Option<&'a str> {
     match member {
         MemberExpression::StaticMemberExpression(expr) => Some(expr.property.name.as_str()),
         MemberExpression::PrivateFieldExpression(expr) => Some(expr.field.name.as_str()),
-        MemberExpression::LeadingDotMemberExpression(expr) => Some(expr.property.name.as_str()),
+        // LeadingDotExpression is now a separate Expression type, not a MemberExpression
         MemberExpression::ComputedMemberExpression(_) => None,
     }
 }

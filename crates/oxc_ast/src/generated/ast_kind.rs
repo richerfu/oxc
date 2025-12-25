@@ -33,7 +33,7 @@ pub enum AstType {
     ComputedMemberExpression = 13,
     StaticMemberExpression = 14,
     PrivateFieldExpression = 15,
-    LeadingDotMemberExpression = 16,
+    LeadingDotExpression = 16,
     CallExpression = 17,
     NewExpression = 18,
     MetaProperty = 19,
@@ -234,8 +234,7 @@ pub enum AstKind<'a> {
         AstType::ComputedMemberExpression as u8,
     StaticMemberExpression(&'a StaticMemberExpression<'a>) = AstType::StaticMemberExpression as u8,
     PrivateFieldExpression(&'a PrivateFieldExpression<'a>) = AstType::PrivateFieldExpression as u8,
-    LeadingDotMemberExpression(&'a LeadingDotMemberExpression<'a>) =
-        AstType::LeadingDotMemberExpression as u8,
+    LeadingDotExpression(&'a LeadingDotExpression<'a>) = AstType::LeadingDotExpression as u8,
     CallExpression(&'a CallExpression<'a>) = AstType::CallExpression as u8,
     NewExpression(&'a NewExpression<'a>) = AstType::NewExpression as u8,
     MetaProperty(&'a MetaProperty<'a>) = AstType::MetaProperty as u8,
@@ -462,7 +461,7 @@ impl GetSpan for AstKind<'_> {
             Self::ComputedMemberExpression(it) => it.span(),
             Self::StaticMemberExpression(it) => it.span(),
             Self::PrivateFieldExpression(it) => it.span(),
-            Self::LeadingDotMemberExpression(it) => it.span(),
+            Self::LeadingDotExpression(it) => it.span(),
             Self::CallExpression(it) => it.span(),
             Self::NewExpression(it) => it.span(),
             Self::MetaProperty(it) => it.span(),
@@ -662,7 +661,7 @@ impl GetAddress for AstKind<'_> {
             Self::ComputedMemberExpression(it) => it.unstable_address(),
             Self::StaticMemberExpression(it) => it.unstable_address(),
             Self::PrivateFieldExpression(it) => it.unstable_address(),
-            Self::LeadingDotMemberExpression(it) => it.unstable_address(),
+            Self::LeadingDotExpression(it) => it.unstable_address(),
             Self::CallExpression(it) => it.unstable_address(),
             Self::NewExpression(it) => it.unstable_address(),
             Self::MetaProperty(it) => it.unstable_address(),
@@ -925,8 +924,8 @@ impl<'a> AstKind<'a> {
     }
 
     #[inline]
-    pub fn as_leading_dot_member_expression(self) -> Option<&'a LeadingDotMemberExpression<'a>> {
-        if let Self::LeadingDotMemberExpression(v) = self { Some(v) } else { None }
+    pub fn as_leading_dot_expression(self) -> Option<&'a LeadingDotExpression<'a>> {
+        if let Self::LeadingDotExpression(v) = self { Some(v) } else { None }
     }
 
     #[inline]

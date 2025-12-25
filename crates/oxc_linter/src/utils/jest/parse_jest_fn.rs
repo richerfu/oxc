@@ -488,8 +488,7 @@ impl<'a> MemberExpressionElement<'a> {
             }
             // Jest fn chains don't have private fields, just ignore it.
             MemberExpression::PrivateFieldExpression(_) => None,
-            // LeadingDotMemberExpression is not used in Jest fn chains
-            MemberExpression::LeadingDotMemberExpression(_) => None,
+            // LeadingDotExpression is now a separate Expression type, not a MemberExpression
         }
     }
 

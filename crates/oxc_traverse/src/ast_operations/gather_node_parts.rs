@@ -254,10 +254,8 @@ impl<'a> GatherNodeParts<'a> for MemberExpression<'a> {
             MemberExpression::PrivateFieldExpression(expr) => {
                 expr.gather(f);
             }
-            MemberExpression::LeadingDotMemberExpression(expr) => {
-                // LeadingDotMemberExpression has implicit `this`, gather property name
-                f(expr.property.name.as_str());
-            }
+            // LeadingDotExpression is now a separate Expression type, not a MemberExpression
+            // So it's handled in the Expression match above
         }
     }
 }

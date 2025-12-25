@@ -56,10 +56,10 @@ impl GetAddress for Expression<'_> {
             Self::TSInstantiationExpression(it) => GetAddress::address(it),
             Self::V8IntrinsicExpression(it) => GetAddress::address(it),
             Self::ArkUIComponentExpression(it) => GetAddress::address(it),
+            Self::LeadingDotExpression(it) => GetAddress::address(it),
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }
@@ -123,10 +123,10 @@ impl GetAddress for PropertyKey<'_> {
             Self::TSInstantiationExpression(it) => GetAddress::address(it),
             Self::V8IntrinsicExpression(it) => GetAddress::address(it),
             Self::ArkUIComponentExpression(it) => GetAddress::address(it),
+            Self::LeadingDotExpression(it) => GetAddress::address(it),
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }
@@ -139,7 +139,6 @@ impl GetAddress for MemberExpression<'_> {
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }
@@ -191,10 +190,10 @@ impl GetAddress for Argument<'_> {
             Self::TSInstantiationExpression(it) => GetAddress::address(it),
             Self::V8IntrinsicExpression(it) => GetAddress::address(it),
             Self::ArkUIComponentExpression(it) => GetAddress::address(it),
+            Self::LeadingDotExpression(it) => GetAddress::address(it),
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }
@@ -212,7 +211,6 @@ impl GetAddress for AssignmentTarget<'_> {
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
             Self::ArrayAssignmentTarget(it) => GetAddress::address(it),
             Self::ObjectAssignmentTarget(it) => GetAddress::address(it),
         }
@@ -232,7 +230,6 @@ impl GetAddress for SimpleAssignmentTarget<'_> {
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }
@@ -262,7 +259,6 @@ impl GetAddress for AssignmentTargetMaybeDefault<'_> {
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
             Self::ArrayAssignmentTarget(it) => GetAddress::address(it),
             Self::ObjectAssignmentTarget(it) => GetAddress::address(it),
         }
@@ -290,7 +286,6 @@ impl GetAddress for ChainElement<'_> {
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }
@@ -405,10 +400,10 @@ impl GetAddress for ForStatementInit<'_> {
             Self::TSInstantiationExpression(it) => GetAddress::address(it),
             Self::V8IntrinsicExpression(it) => GetAddress::address(it),
             Self::ArkUIComponentExpression(it) => GetAddress::address(it),
+            Self::LeadingDotExpression(it) => GetAddress::address(it),
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }
@@ -427,7 +422,6 @@ impl GetAddress for ForStatementLeft<'_> {
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
             Self::ArrayAssignmentTarget(it) => GetAddress::address(it),
             Self::ObjectAssignmentTarget(it) => GetAddress::address(it),
         }
@@ -539,10 +533,10 @@ impl GetAddress for ExportDefaultDeclarationKind<'_> {
             Self::TSInstantiationExpression(it) => GetAddress::address(it),
             Self::V8IntrinsicExpression(it) => GetAddress::address(it),
             Self::ArkUIComponentExpression(it) => GetAddress::address(it),
+            Self::LeadingDotExpression(it) => GetAddress::address(it),
             Self::ComputedMemberExpression(it) => GetAddress::address(it),
             Self::StaticMemberExpression(it) => GetAddress::address(it),
             Self::PrivateFieldExpression(it) => GetAddress::address(it),
-            Self::LeadingDotMemberExpression(it) => GetAddress::address(it),
         }
     }
 }

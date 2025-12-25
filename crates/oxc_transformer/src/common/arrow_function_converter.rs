@@ -760,10 +760,8 @@ impl<'a> ArrowFunctionConverter<'a> {
                 property = static_member.property.name.as_str();
                 expr.take_in(ctx.ast)
             }
-            MemberExpression::LeadingDotMemberExpression(_) => {
-                // LeadingDotMemberExpression cannot be converted (has implicit `this`)
-                return None;
-            }
+            // LeadingDotExpression is now a separate Expression type, not a MemberExpression
+            // So it's handled in the Expression match above
             MemberExpression::PrivateFieldExpression(_) => {
                 // Private fields can't be accessed by `super`.
                 return None;

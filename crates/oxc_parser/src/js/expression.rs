@@ -171,9 +171,8 @@ impl<'a> ParserImpl<'a> {
     fn parse_primary_expression(&mut self) -> Expression<'a> {
         // Handle ArkUI expressions starting with dots (e.g., in object literals or function bodies)
         // Example: { focused: { .backgroundColor('#ffffeef0') } }
-        // In primary expression context, allow chaining (e.g., .method1().method2())
         if self.source_type.is_arkui() && self.at(Kind::Dot) {
-            return self.parse_leading_dot_expression(true);
+            return self.parse_leading_dot_expression();
         }
 
         // FunctionExpression, GeneratorExpression
@@ -220,11 +219,8 @@ impl<'a> ParserImpl<'a> {
     }
 
     /// Parse ArkUI leading-dot expression (e.g., `.backgroundColor('#ffffeef0')`)
-    /// Creates a LeadingDotMemberExpression instead of converting to this.property
-    ///
-    /// `allow_chaining`: If true, continue parsing chain expressions (e.g., .method1().method2())
-    ///                   If false, stop after the first expression (used in object literal contexts)
-    pub(crate) fn parse_leading_dot_expression(&mut self, allow_chaining: bool) -> Expression<'a> {
+    /// Creates a LeadingDotExpression, similar to CallExpression but starting with a dot
+    pub(crate) fn parse_leading_dot_expression(&mut self) -> Expression<'a> {
         use crate::lexer::Kind;
         let span = self.start_span();
 
@@ -240,86 +236,43 @@ impl<'a> ParserImpl<'a> {
             return self.fatal_error(error);
         }
 
-        let property_span = self.start_span();
         let property = self.parse_identifier_name();
-        let property_end_span = self.end_span(property_span);
 
-        // Check if this is followed by a call expression or more member access
-        if self.at(Kind::LParen) {
-            // Method call: .methodName(...)
-            let call_span = self.start_span();
-            let opening_span = self.cur_token().span();
-            self.expect(Kind::LParen);
-            let (exprs, _) = self.parse_delimited_list(
-                Kind::RParen,
-                Kind::Comma,
-                opening_span,
-                Self::parse_assignment_expression_or_higher,
-            );
-            let mut call_args = self.ast.vec();
-            for expr in exprs {
-                call_args.push(Argument::from(expr));
-            }
-            self.expect(Kind::RParen);
+        // Parse type arguments if present (TypeScript)
+        let type_arguments = if self.is_ts {
+            self.try_parse(Self::parse_type_arguments_in_expression)
+        } else {
+            None
+        };
 
-            // Create a call expression with the leading-dot member expression as callee
-            let leading_dot_member =
-                self.ast.member_expression_leading_dot(property_end_span, property, optional, None);
-            let call_expr = self.ast.expression_call(
-                self.end_span(call_span),
-                Expression::from(leading_dot_member),
-                oxc_ast::NONE,
-                call_args,
-                false,
-            );
-
-            // Continue parsing chain expressions only if allowed
-            // In object literal contexts, we stop here so each dot expression is a separate property
-            if allow_chaining {
-                return self.parse_member_expression_rest_from_lhs_for_primary(
-                    span,
-                    Expression::from(call_expr),
-                );
-            } else {
-                return Expression::from(call_expr);
-            }
-        } else if self.at(Kind::Dot) {
-            // More member access: .property.method()
-            // Only continue if chaining is allowed
-            if allow_chaining {
-                // Parse the rest as a regular member expression chain
-                // Create a temporary this expression to use as the base
-                let this_span = self.start_span();
-                let this_expr = self.ast.expression_this(self.end_span(this_span));
-
-                // Create the first member access as StaticMemberExpression for now
-                let first_member = self.ast.member_expression_static(
-                    property_end_span,
-                    this_expr,
-                    property,
-                    optional,
-                );
-
-                // Parse the rest of the chain
-                return self.parse_member_expression_rest_from_lhs_for_primary(
-                    span,
-                    Expression::from(first_member),
-                );
-            }
-            // If chaining is not allowed, stop here
+        // Parse arguments
+        let opening_span = self.cur_token().span();
+        self.expect(Kind::LParen);
+        let (exprs, _) = self.parse_delimited_list(
+            Kind::RParen,
+            Kind::Comma,
+            opening_span,
+            Self::parse_assignment_expression_or_higher,
+        );
+        let mut arguments = self.ast.vec();
+        for expr in exprs {
+            arguments.push(Argument::from(expr));
         }
+        self.expect(Kind::RParen);
 
-        // Just a property access: .property
-        Expression::from(self.ast.member_expression_leading_dot(
+        // Create LeadingDotExpression, similar to CallExpression
+        Expression::from(self.ast.expression_leading_dot(
             self.end_span(span),
             property,
             optional,
-            None,
+            type_arguments,
+            arguments,
         ))
     }
 
     /// Parse member expression rest starting from a given LHS for primary expressions
     /// Used for ArkUI expressions starting with dots in object literals and other contexts
+    #[allow(dead_code)]
     pub(crate) fn parse_member_expression_rest_from_lhs_for_primary(
         &mut self,
         _lhs_span: u32,
@@ -959,6 +912,16 @@ impl<'a> ParserImpl<'a> {
         let mut lhs = lhs;
         loop {
             if self.fatal_error.is_some() {
+                return lhs;
+            }
+
+            // In ArkUI function bodies, if we have a LeadingDotExpression and the next token is a dot,
+            // stop chaining to allow it to be parsed as a separate statement (regardless of whether it's on a new line)
+            if self.source_type.is_arkui()
+                && self.ctx.has_return()
+                && matches!(lhs, Expression::LeadingDotExpression(_))
+                && self.at(Kind::Dot)
+            {
                 return lhs;
             }
 

@@ -75,12 +75,10 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             Expression::TSInstantiationExpression(it) => self.visit_ts_instantiation_expression(it),
             Expression::V8IntrinsicExpression(it) => self.visit_v_8_intrinsic_expression(it),
             Expression::ArkUIComponentExpression(it) => self.visit_ark_ui_component_expression(it),
+            Expression::LeadingDotExpression(it) => self.visit_leading_dot_expression(it),
             Expression::ComputedMemberExpression(it) => self.visit_computed_member_expression(it),
             Expression::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             Expression::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            Expression::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
-            }
             _ => {
                 // Remaining variants do not contain scopes:
                 // `BooleanLiteral`
@@ -184,6 +182,9 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             ArrayExpressionElement::ArkUIComponentExpression(it) => {
                 self.visit_ark_ui_component_expression(it)
             }
+            ArrayExpressionElement::LeadingDotExpression(it) => {
+                self.visit_leading_dot_expression(it)
+            }
             ArrayExpressionElement::ComputedMemberExpression(it) => {
                 self.visit_computed_member_expression(it)
             }
@@ -192,9 +193,6 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             }
             ArrayExpressionElement::PrivateFieldExpression(it) => {
                 self.visit_private_field_expression(it)
-            }
-            ArrayExpressionElement::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
             }
             _ => {
                 // Remaining variants do not contain scopes:
@@ -267,12 +265,10 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             }
             PropertyKey::V8IntrinsicExpression(it) => self.visit_v_8_intrinsic_expression(it),
             PropertyKey::ArkUIComponentExpression(it) => self.visit_ark_ui_component_expression(it),
+            PropertyKey::LeadingDotExpression(it) => self.visit_leading_dot_expression(it),
             PropertyKey::ComputedMemberExpression(it) => self.visit_computed_member_expression(it),
             PropertyKey::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             PropertyKey::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            PropertyKey::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
-            }
             _ => {
                 // Remaining variants do not contain scopes:
                 // `StaticIdentifier`
@@ -327,10 +323,11 @@ impl<'a> Visit<'a> for ChildScopeCollector {
     }
 
     #[inline]
-    fn visit_leading_dot_member_expression(&mut self, it: &LeadingDotMemberExpression<'a>) {
-        if let Some(rest) = &it.rest {
-            self.visit_expression(rest);
+    fn visit_leading_dot_expression(&mut self, it: &LeadingDotExpression<'a>) {
+        if let Some(type_arguments) = &it.type_arguments {
+            self.visit_ts_type_parameter_instantiation(type_arguments);
         }
+        self.visit_arguments(&it.arguments);
     }
 
     #[inline]
@@ -398,12 +395,10 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             Argument::TSInstantiationExpression(it) => self.visit_ts_instantiation_expression(it),
             Argument::V8IntrinsicExpression(it) => self.visit_v_8_intrinsic_expression(it),
             Argument::ArkUIComponentExpression(it) => self.visit_ark_ui_component_expression(it),
+            Argument::LeadingDotExpression(it) => self.visit_leading_dot_expression(it),
             Argument::ComputedMemberExpression(it) => self.visit_computed_member_expression(it),
             Argument::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             Argument::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            Argument::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
-            }
             _ => {
                 // Remaining variants do not contain scopes:
                 // `BooleanLiteral`
@@ -471,9 +466,6 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             }
             AssignmentTarget::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             AssignmentTarget::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            AssignmentTarget::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
-            }
             AssignmentTarget::ArrayAssignmentTarget(it) => self.visit_array_assignment_target(it),
             AssignmentTarget::ObjectAssignmentTarget(it) => self.visit_object_assignment_target(it),
             _ => {
@@ -501,9 +493,6 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             }
             SimpleAssignmentTarget::PrivateFieldExpression(it) => {
                 self.visit_private_field_expression(it)
-            }
-            SimpleAssignmentTarget::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
             }
             _ => {
                 // Remaining variants do not contain scopes:
@@ -556,9 +545,6 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             }
             AssignmentTargetMaybeDefault::PrivateFieldExpression(it) => {
                 self.visit_private_field_expression(it)
-            }
-            AssignmentTargetMaybeDefault::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
             }
             AssignmentTargetMaybeDefault::ArrayAssignmentTarget(it) => {
                 self.visit_array_assignment_target(it)
@@ -804,14 +790,12 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             ForStatementInit::ArkUIComponentExpression(it) => {
                 self.visit_ark_ui_component_expression(it)
             }
+            ForStatementInit::LeadingDotExpression(it) => self.visit_leading_dot_expression(it),
             ForStatementInit::ComputedMemberExpression(it) => {
                 self.visit_computed_member_expression(it)
             }
             ForStatementInit::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             ForStatementInit::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            ForStatementInit::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
-            }
             _ => {
                 // Remaining variants do not contain scopes:
                 // `BooleanLiteral`
@@ -845,9 +829,6 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             }
             ForStatementLeft::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             ForStatementLeft::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            ForStatementLeft::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
-            }
             ForStatementLeft::ArrayAssignmentTarget(it) => self.visit_array_assignment_target(it),
             ForStatementLeft::ObjectAssignmentTarget(it) => self.visit_object_assignment_target(it),
             _ => {
@@ -1263,6 +1244,9 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             ExportDefaultDeclarationKind::ArkUIComponentExpression(it) => {
                 self.visit_ark_ui_component_expression(it)
             }
+            ExportDefaultDeclarationKind::LeadingDotExpression(it) => {
+                self.visit_leading_dot_expression(it)
+            }
             ExportDefaultDeclarationKind::ComputedMemberExpression(it) => {
                 self.visit_computed_member_expression(it)
             }
@@ -1271,9 +1255,6 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             }
             ExportDefaultDeclarationKind::PrivateFieldExpression(it) => {
                 self.visit_private_field_expression(it)
-            }
-            ExportDefaultDeclarationKind::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
             }
             _ => {
                 // Remaining variants do not contain scopes:
@@ -1432,14 +1413,12 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             JSXExpression::ArkUIComponentExpression(it) => {
                 self.visit_ark_ui_component_expression(it)
             }
+            JSXExpression::LeadingDotExpression(it) => self.visit_leading_dot_expression(it),
             JSXExpression::ComputedMemberExpression(it) => {
                 self.visit_computed_member_expression(it)
             }
             JSXExpression::StaticMemberExpression(it) => self.visit_static_member_expression(it),
             JSXExpression::PrivateFieldExpression(it) => self.visit_private_field_expression(it),
-            JSXExpression::LeadingDotMemberExpression(it) => {
-                self.visit_leading_dot_member_expression(it)
-            }
             _ => {
                 // Remaining variants do not contain scopes:
                 // `EmptyExpression`

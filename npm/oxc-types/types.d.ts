@@ -51,6 +51,7 @@ export type Expression =
   | TSInstantiationExpression
   | V8IntrinsicExpression
   | ArkUIComponentExpression
+  | LeadingDotExpression
   | MemberExpression;
 
 export interface IdentifierName extends Span {
@@ -156,8 +157,7 @@ export interface TemplateElementValue {
 export type MemberExpression =
   | ComputedMemberExpression
   | StaticMemberExpression
-  | PrivateFieldExpression
-  | LeadingDotMemberExpression;
+  | PrivateFieldExpression;
 
 export interface ComputedMemberExpression extends Span {
   type: "MemberExpression";
@@ -186,12 +186,12 @@ export interface PrivateFieldExpression extends Span {
   parent?: Node;
 }
 
-export interface LeadingDotMemberExpression extends Span {
-  type: "MemberExpression";
+export interface LeadingDotExpression extends Span {
+  type: "LeadingDotExpression";
   property: IdentifierName;
   optional: boolean;
-  rest: Expression | null;
-  computed: false;
+  typeArguments?: TSTypeParameterInstantiation | null;
+  arguments: Array<Argument>;
   parent?: Node;
 }
 
@@ -1800,7 +1800,7 @@ export type Node =
   | ComputedMemberExpression
   | StaticMemberExpression
   | PrivateFieldExpression
-  | LeadingDotMemberExpression
+  | LeadingDotExpression
   | CallExpression
   | NewExpression
   | MetaProperty

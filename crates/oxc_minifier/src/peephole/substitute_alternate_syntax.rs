@@ -1354,9 +1354,7 @@ impl<'a> PeepholeOptimizations {
                     ctx.state.changed = true;
                 }
             }
-            ChainElement::LeadingDotMemberExpression(_) => {
-                // LeadingDotMemberExpression has no object to flatten
-            }
+            // LeadingDotExpression is now a separate Expression type, not a ChainElement
             ChainElement::ComputedMemberExpression(member) => {
                 if let Expression::ChainExpression(chain) = member.object.without_parentheses_mut()
                 {

@@ -1263,28 +1263,28 @@ impl<'a> AstBuilder<'a> {
     ///
     /// ## Parameters
     /// * `span`: The [`Span`] covering this node
-    /// * `property`: The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
     /// * `optional`
     /// * `type_arguments`
     /// * `arguments`
+    /// * `expression`: The chained expression after the leading dot call (e.g., `.fontSize(size).fancy()`)
     #[inline]
     pub fn expression_leading_dot<T1>(
         self,
         span: Span,
-        property: IdentifierName<'a>,
         optional: bool,
         type_arguments: T1,
         arguments: Vec<'a, Argument<'a>>,
+        expression: Expression<'a>,
     ) -> Expression<'a>
     where
         T1: IntoIn<'a, Option<Box<'a, TSTypeParameterInstantiation<'a>>>>,
     {
         Expression::LeadingDotExpression(self.alloc_leading_dot_expression(
             span,
-            property,
             optional,
             type_arguments,
             arguments,
+            expression,
         ))
     }
 
@@ -2083,28 +2083,28 @@ impl<'a> AstBuilder<'a> {
     ///
     /// ## Parameters
     /// * `span`: The [`Span`] covering this node
-    /// * `property`: The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
     /// * `optional`
     /// * `type_arguments`
     /// * `arguments`
+    /// * `expression`: The chained expression after the leading dot call (e.g., `.fontSize(size).fancy()`)
     #[inline]
     pub fn leading_dot_expression<T1>(
         self,
         span: Span,
-        property: IdentifierName<'a>,
         optional: bool,
         type_arguments: T1,
         arguments: Vec<'a, Argument<'a>>,
+        expression: Expression<'a>,
     ) -> LeadingDotExpression<'a>
     where
         T1: IntoIn<'a, Option<Box<'a, TSTypeParameterInstantiation<'a>>>>,
     {
         LeadingDotExpression {
             span,
-            property,
             optional,
             type_arguments: type_arguments.into_in(self.allocator),
             arguments,
+            expression,
         }
     }
 
@@ -2115,24 +2115,24 @@ impl<'a> AstBuilder<'a> {
     ///
     /// ## Parameters
     /// * `span`: The [`Span`] covering this node
-    /// * `property`: The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
     /// * `optional`
     /// * `type_arguments`
     /// * `arguments`
+    /// * `expression`: The chained expression after the leading dot call (e.g., `.fontSize(size).fancy()`)
     #[inline]
     pub fn alloc_leading_dot_expression<T1>(
         self,
         span: Span,
-        property: IdentifierName<'a>,
         optional: bool,
         type_arguments: T1,
         arguments: Vec<'a, Argument<'a>>,
+        expression: Expression<'a>,
     ) -> Box<'a, LeadingDotExpression<'a>>
     where
         T1: IntoIn<'a, Option<Box<'a, TSTypeParameterInstantiation<'a>>>>,
     {
         Box::new_in(
-            self.leading_dot_expression(span, property, optional, type_arguments, arguments),
+            self.leading_dot_expression(span, optional, type_arguments, arguments, expression),
             self.allocator,
         )
     }

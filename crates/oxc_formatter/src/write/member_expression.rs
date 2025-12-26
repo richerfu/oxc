@@ -160,4 +160,3 @@ impl<'a> FormatWrite<'a> for AstNode<'a, PrivateFieldExpression<'a>> {
         write!(f, [self.object(), self.optional().then_some("?"), ".", self.field()]);
     }
 }
-

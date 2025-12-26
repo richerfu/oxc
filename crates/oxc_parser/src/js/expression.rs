@@ -1,9 +1,9 @@
 use cow_utils::CowUtils;
-use oxc_allocator::{Box, TakeIn, Vec};
+use oxc_allocator::{Box, CloneIn, TakeIn, Vec};
 use oxc_ast::ast::*;
 #[cfg(feature = "regular_expression")]
 use oxc_regular_expression::ast::Pattern;
-use oxc_span::{Atom, GetSpan, Span};
+use oxc_span::{Atom, GetSpan, GetSpanMut, Span};
 use oxc_syntax::{
     number::{BigintBase, NumberBase},
     precedence::Precedence,
@@ -236,7 +236,8 @@ impl<'a> ParserImpl<'a> {
             return self.fatal_error(error);
         }
 
-        let property = self.parse_identifier_name();
+        // Parse the property name (we'll use it to build the initial call expression)
+        let _property = self.parse_identifier_name();
 
         // Parse type arguments if present (TypeScript)
         let type_arguments = if self.is_ts {
@@ -245,29 +246,132 @@ impl<'a> ParserImpl<'a> {
             None
         };
 
-        // Parse arguments
-        let opening_span = self.cur_token().span();
-        self.expect(Kind::LParen);
-        let (exprs, _) = self.parse_delimited_list(
-            Kind::RParen,
-            Kind::Comma,
-            opening_span,
-            Self::parse_assignment_expression_or_higher,
-        );
-        let mut arguments = self.ast.vec();
-        for expr in exprs {
-            arguments.push(Argument::from(expr));
-        }
-        self.expect(Kind::RParen);
+        // Parse arguments (optional - can be property access without parentheses)
+        let arguments = if self.at(Kind::LParen) {
+            let opening_span = self.cur_token().span();
+            self.expect(Kind::LParen);
+            let (exprs, _) = self.parse_delimited_list(
+                Kind::RParen,
+                Kind::Comma,
+                opening_span,
+                Self::parse_assignment_expression_or_higher,
+            );
+            let mut args = self.ast.vec();
+            for expr in exprs {
+                args.push(Argument::from(expr));
+            }
+            self.expect(Kind::RParen);
+            args
+        } else {
+            // No parentheses - this is a property access, not a call
+            self.ast.vec()
+        };
 
-        // Create LeadingDotExpression, similar to CallExpression
-        Expression::from(self.ast.expression_leading_dot(
-            self.end_span(span),
-            property,
-            optional,
+        // In ArkUI function bodies, parse the entire chain and store in expression field
+        // LeadingDotExpression's arguments field should be empty - arguments are in the expression field
+        let type_arguments_for_chain = type_arguments.clone_in(self.ast.allocator);
+        let empty_arguments = self.ast.vec(); // LeadingDotExpression should have empty arguments
+
+        if self.source_type.is_arkui()
+            && self.ctx.has_return()
+            && (self.at(Kind::Dot) || self.at(Kind::LParen) || self.at(Kind::LBrack))
+        {
+            // Parse the entire chain starting from the leading dot
+            // The expression field should start from fontSize(size) (without the leading dot)
+            // So we create a CallExpression with Identifier as callee
+            // Start the expression span from the property (not including the leading dot)
+            // Use _property.span.start as the expression start to ensure correct span
+            let expression_span_start = _property.span.start;
+            let property_ident = Expression::Identifier(
+                self.alloc(self.ast.identifier_reference(_property.span, _property.name)),
+            );
+
+            // Create the initial CallExpression: fontSize(size)
+            // Note: callee is Identifier, not StaticMemberExpression
+            // Use _property.span.start and current prev_token_end to create valid span
+            let initial_call_end = self.prev_token_end.max(expression_span_start);
+            let initial_call_span = Span::new(expression_span_start, initial_call_end);
+            let initial_call = self.ast.expression_call(
+                initial_call_span,
+                property_ident,
+                type_arguments,
+                arguments,
+                optional,
+            );
+
+            // Parse the chained expression (e.g., .fancy(12).hello() after fontSize(size))
+            // Use expression_span_start as lhs_span to ensure consistent span calculation
+            let mut in_optional_chain = false;
+            let chained_expr = self.parse_call_expression_rest(
+                expression_span_start,
+                initial_call,
+                &mut in_optional_chain,
+            );
+
+            // Create LeadingDotExpression with the entire chain in expression field
+            // The expression field contains fontSize(size).fancy(12).hello() (without leading dot)
+            // The expression span should start from property, not including the leading dot
+            // Ensure end >= start to avoid assertion failures
+            let mut chained_expr_with_correct_span = chained_expr;
+            let chained_expr_end = chained_expr_with_correct_span.span().end;
+            // Ensure the end is at least as large as the start
+            let expression_span_end = chained_expr_end.max(expression_span_start);
+            *chained_expr_with_correct_span.span_mut() =
+                Span::new(expression_span_start, expression_span_end);
+
+            // Create leading_dot_span: from the dot start to the end of the chained expression
+            // Ensure end >= start to avoid assertion failures
+            let leading_dot_start = span;
+            let leading_dot_end =
+                self.prev_token_end.max(expression_span_end).max(leading_dot_start);
+            let leading_dot_span = Span::new(leading_dot_start, leading_dot_end);
+            let leading_dot = self.ast.alloc_leading_dot_expression(
+                leading_dot_span,
+                optional,
+                type_arguments_for_chain,
+                empty_arguments, // LeadingDotExpression should have empty arguments
+                chained_expr_with_correct_span,
+            );
+            return Expression::LeadingDotExpression(leading_dot);
+        }
+
+        // No chaining - create a simple LeadingDotExpression with just the initial call
+        // For non-chained case, we still need to create the expression
+        // The expression field should start from fontSize(size) (without the leading dot)
+        // Start the expression span from the property (not including the leading dot)
+        let expression_start_span = self.start_span();
+        let property_ident = Expression::Identifier(
+            self.alloc(self.ast.identifier_reference(_property.span, _property.name)),
+        );
+
+        // Create CallExpression with Identifier as callee (not StaticMemberExpression)
+        let mut initial_call = self.ast.expression_call(
+            self.end_span(expression_start_span),
+            property_ident,
             type_arguments,
             arguments,
-        ))
+            optional,
+        );
+
+        // Update the expression span to exclude the leading dot
+        // Ensure end >= start to avoid assertion failures
+        let initial_call_end = initial_call.span().end;
+        let expression_span_end = initial_call_end.max(_property.span.start);
+        *initial_call.span_mut() = Span::new(_property.span.start, expression_span_end);
+
+        // LeadingDotExpression span includes the leading dot, but expression span doesn't
+        // Ensure end >= start to avoid assertion failures
+        // LeadingDotExpression's arguments field should be empty - arguments are in the expression field
+        let leading_dot_start = span;
+        let leading_dot_end = self.prev_token_end.max(expression_span_end).max(leading_dot_start);
+        let leading_dot_span = Span::new(leading_dot_start, leading_dot_end);
+        self.ast.expression_leading_dot(
+            leading_dot_span,
+            optional,
+            type_arguments_for_chain,
+            empty_arguments, // LeadingDotExpression should have empty arguments
+            initial_call,
+        )
     }
 
     /// Parse member expression rest starting from a given LHS for primary expressions
@@ -912,16 +1016,6 @@ impl<'a> ParserImpl<'a> {
         let mut lhs = lhs;
         loop {
             if self.fatal_error.is_some() {
-                return lhs;
-            }
-
-            // In ArkUI function bodies, if we have a LeadingDotExpression and the next token is a dot,
-            // stop chaining to allow it to be parsed as a separate statement (regardless of whether it's on a new line)
-            if self.source_type.is_arkui()
-                && self.ctx.has_return()
-                && matches!(lhs, Expression::LeadingDotExpression(_))
-                && self.at(Kind::Dot)
-            {
                 return lhs;
             }
 

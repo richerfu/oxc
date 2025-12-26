@@ -1591,7 +1591,7 @@ impl GenExpr for StaticMemberExpression<'_> {
 
 impl GenExpr for LeadingDotExpression<'_> {
     fn gen_expr(&self, p: &mut Codegen, _precedence: Precedence, ctx: Context) {
-        // Print the leading dot and property, with optional `?.`.
+        // Print the leading dot, with optional `?.`.
         // For ArkUI leading-dot expressions, align with first dot on line breaks
         if self.optional {
             p.print_str("?.");
@@ -1600,23 +1600,11 @@ impl GenExpr for LeadingDotExpression<'_> {
             p.print_indent();
             p.print_ascii_byte(b'.');
         }
-        self.property.print(p, ctx);
 
-        // Print type arguments if present (TypeScript)
-        if let Some(type_args) = &self.type_arguments {
-            type_args.print(p, ctx);
-        }
-
-        // Print arguments
-        p.print_ascii_byte(b'(');
-        for (i, arg) in self.arguments.iter().enumerate() {
-            if i > 0 {
-                p.print_ascii_byte(b',');
-                p.print_soft_space();
-            }
-            arg.print(p, ctx);
-        }
-        p.print_ascii_byte(b')');
+        // Print the expression field which contains the full chain
+        // (e.g., fontSize(size).fancy(12).hello())
+        // The expression field already contains the complete chain without the leading dot
+        self.expression.print_expr(p, Precedence::Postfix, ctx);
     }
 }
 

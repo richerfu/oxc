@@ -651,16 +651,16 @@ function deserializeLeadingDotExpression(pos) {
     previousParent = parent,
     node = (parent = {
       type: "LeadingDotExpression",
-      property: null,
-      optional: deserializeBool(pos + 64),
+      optional: deserializeBool(pos + 56),
       arguments: null,
+      expression: null,
       start,
       end,
       range: [start, end],
       parent,
     });
-  node.property = deserializeIdentifierName(pos + 8);
-  node.arguments = deserializeVecArgument(pos + 40);
+  node.arguments = deserializeVecArgument(pos + 16);
+  node.expression = deserializeExpression(pos + 40);
   parent = previousParent;
   return node;
 }

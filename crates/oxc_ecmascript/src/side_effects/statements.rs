@@ -96,7 +96,7 @@ impl<'a> MayHaveSideEffects<'a> for Declaration<'a> {
             | Declaration::TSGlobalDeclaration(_)
             | Declaration::TSInterfaceDeclaration(_)
             | Declaration::TSTypeAliasDeclaration(_) => unreachable!(),
-            | Declaration::StructStatement(_) => false, // Struct declarations don't have side effects
+            Declaration::StructStatement(_) => false, // Struct declarations don't have side effects
         }
     }
 }

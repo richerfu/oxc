@@ -1288,14 +1288,12 @@ pub fn check_unary_expression(unary_expr: &UnaryExpression, ctx: &SemanticBuilde
             Expression::PrivateFieldExpression(expr) => {
                 ctx.error(delete_private_field(expr.span));
             }
-            Expression::ChainExpression(chain_expr) => {
-                match &chain_expr.expression {
-                    ChainElement::PrivateFieldExpression(e) => {
-                        ctx.error(delete_private_field(e.field.span));
-                    }
-                    _ => {}
+            Expression::ChainExpression(chain_expr) => match &chain_expr.expression {
+                ChainElement::PrivateFieldExpression(e) => {
+                    ctx.error(delete_private_field(e.field.span));
                 }
-            }
+                _ => {}
+            },
             _ => {}
         }
     }

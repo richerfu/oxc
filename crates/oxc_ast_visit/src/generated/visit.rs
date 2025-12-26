@@ -1698,11 +1698,11 @@ pub mod walk {
         let kind = AstKind::LeadingDotExpression(visitor.alloc(it));
         visitor.enter_node(kind);
         visitor.visit_span(&it.span);
-        visitor.visit_identifier_name(&it.property);
         if let Some(type_arguments) = &it.type_arguments {
             visitor.visit_ts_type_parameter_instantiation(type_arguments);
         }
         visitor.visit_arguments(&it.arguments);
+        visitor.visit_expression(&it.expression);
         visitor.leave_node(kind);
     }
 

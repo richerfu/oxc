@@ -352,10 +352,10 @@ impl ContentEq for PrivateFieldExpression<'_> {
 
 impl ContentEq for LeadingDotExpression<'_> {
     fn content_eq(&self, other: &Self) -> bool {
-        ContentEq::content_eq(&self.property, &other.property)
-            && ContentEq::content_eq(&self.optional, &other.optional)
+        ContentEq::content_eq(&self.optional, &other.optional)
             && ContentEq::content_eq(&self.type_arguments, &other.type_arguments)
             && ContentEq::content_eq(&self.arguments, &other.arguments)
+            && ContentEq::content_eq(&self.expression, &other.expression)
     }
 }
 

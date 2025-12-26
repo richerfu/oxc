@@ -1266,20 +1266,20 @@ impl<'new_alloc> CloneIn<'new_alloc> for LeadingDotExpression<'_> {
     fn clone_in(&self, allocator: &'new_alloc Allocator) -> Self::Cloned {
         LeadingDotExpression {
             span: CloneIn::clone_in(&self.span, allocator),
-            property: CloneIn::clone_in(&self.property, allocator),
             optional: CloneIn::clone_in(&self.optional, allocator),
             type_arguments: CloneIn::clone_in(&self.type_arguments, allocator),
             arguments: CloneIn::clone_in(&self.arguments, allocator),
+            expression: CloneIn::clone_in(&self.expression, allocator),
         }
     }
 
     fn clone_in_with_semantic_ids(&self, allocator: &'new_alloc Allocator) -> Self::Cloned {
         LeadingDotExpression {
             span: CloneIn::clone_in_with_semantic_ids(&self.span, allocator),
-            property: CloneIn::clone_in_with_semantic_ids(&self.property, allocator),
             optional: CloneIn::clone_in_with_semantic_ids(&self.optional, allocator),
             type_arguments: CloneIn::clone_in_with_semantic_ids(&self.type_arguments, allocator),
             arguments: CloneIn::clone_in_with_semantic_ids(&self.arguments, allocator),
+            expression: CloneIn::clone_in_with_semantic_ids(&self.expression, allocator),
         }
     }
 }

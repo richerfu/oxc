@@ -188,10 +188,10 @@ export interface PrivateFieldExpression extends Span {
 
 export interface LeadingDotExpression extends Span {
   type: "LeadingDotExpression";
-  property: IdentifierName;
   optional: boolean;
   typeArguments?: TSTypeParameterInstantiation | null;
   arguments: Array<Argument>;
+  expression: Expression;
   parent?: Node;
 }
 

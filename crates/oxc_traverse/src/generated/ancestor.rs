@@ -40,9 +40,9 @@ pub(crate) enum AncestorType {
     StaticMemberExpressionProperty = 16,
     PrivateFieldExpressionObject = 17,
     PrivateFieldExpressionField = 18,
-    LeadingDotExpressionProperty = 19,
-    LeadingDotExpressionTypeArguments = 20,
-    LeadingDotExpressionArguments = 21,
+    LeadingDotExpressionTypeArguments = 19,
+    LeadingDotExpressionArguments = 20,
+    LeadingDotExpressionExpression = 21,
     CallExpressionCallee = 22,
     CallExpressionTypeArguments = 23,
     CallExpressionArguments = 24,
@@ -395,12 +395,12 @@ pub enum Ancestor<'a, 't> {
         AncestorType::PrivateFieldExpressionObject as u16,
     PrivateFieldExpressionField(PrivateFieldExpressionWithoutField<'a, 't>) =
         AncestorType::PrivateFieldExpressionField as u16,
-    LeadingDotExpressionProperty(LeadingDotExpressionWithoutProperty<'a, 't>) =
-        AncestorType::LeadingDotExpressionProperty as u16,
     LeadingDotExpressionTypeArguments(LeadingDotExpressionWithoutTypeArguments<'a, 't>) =
         AncestorType::LeadingDotExpressionTypeArguments as u16,
     LeadingDotExpressionArguments(LeadingDotExpressionWithoutArguments<'a, 't>) =
         AncestorType::LeadingDotExpressionArguments as u16,
+    LeadingDotExpressionExpression(LeadingDotExpressionWithoutExpression<'a, 't>) =
+        AncestorType::LeadingDotExpressionExpression as u16,
     CallExpressionCallee(CallExpressionWithoutCallee<'a, 't>) =
         AncestorType::CallExpressionCallee as u16,
     CallExpressionTypeArguments(CallExpressionWithoutTypeArguments<'a, 't>) =
@@ -1017,9 +1017,9 @@ impl<'a, 't> Ancestor<'a, 't> {
     pub fn is_leading_dot_expression(self) -> bool {
         matches!(
             self,
-            Self::LeadingDotExpressionProperty(_)
-                | Self::LeadingDotExpressionTypeArguments(_)
+            Self::LeadingDotExpressionTypeArguments(_)
                 | Self::LeadingDotExpressionArguments(_)
+                | Self::LeadingDotExpressionExpression(_)
         )
     }
 
@@ -2057,6 +2057,7 @@ impl<'a, 't> Ancestor<'a, 't> {
                 | Self::ComputedMemberExpressionExpression(_)
                 | Self::StaticMemberExpressionObject(_)
                 | Self::PrivateFieldExpressionObject(_)
+                | Self::LeadingDotExpressionExpression(_)
                 | Self::CallExpressionCallee(_)
                 | Self::NewExpressionCallee(_)
                 | Self::SpreadElementArgument(_)
@@ -2385,9 +2386,9 @@ impl<'a, 't> GetAddress for Ancestor<'a, 't> {
             Self::StaticMemberExpressionProperty(a) => a.address(),
             Self::PrivateFieldExpressionObject(a) => a.address(),
             Self::PrivateFieldExpressionField(a) => a.address(),
-            Self::LeadingDotExpressionProperty(a) => a.address(),
             Self::LeadingDotExpressionTypeArguments(a) => a.address(),
             Self::LeadingDotExpressionArguments(a) => a.address(),
+            Self::LeadingDotExpressionExpression(a) => a.address(),
             Self::CallExpressionCallee(a) => a.address(),
             Self::CallExpressionTypeArguments(a) => a.address(),
             Self::CallExpressionArguments(a) => a.address(),
@@ -3468,58 +3469,14 @@ impl<'a, 't> GetAddress for PrivateFieldExpressionWithoutField<'a, 't> {
 }
 
 pub(crate) const OFFSET_LEADING_DOT_EXPRESSION_SPAN: usize = offset_of!(LeadingDotExpression, span);
-pub(crate) const OFFSET_LEADING_DOT_EXPRESSION_PROPERTY: usize =
-    offset_of!(LeadingDotExpression, property);
 pub(crate) const OFFSET_LEADING_DOT_EXPRESSION_OPTIONAL: usize =
     offset_of!(LeadingDotExpression, optional);
 pub(crate) const OFFSET_LEADING_DOT_EXPRESSION_TYPE_ARGUMENTS: usize =
     offset_of!(LeadingDotExpression, type_arguments);
 pub(crate) const OFFSET_LEADING_DOT_EXPRESSION_ARGUMENTS: usize =
     offset_of!(LeadingDotExpression, arguments);
-
-#[repr(transparent)]
-#[derive(Clone, Copy, Debug)]
-pub struct LeadingDotExpressionWithoutProperty<'a, 't>(
-    pub(crate) *const LeadingDotExpression<'a>,
-    pub(crate) PhantomData<&'t ()>,
-);
-
-impl<'a, 't> LeadingDotExpressionWithoutProperty<'a, 't> {
-    #[inline]
-    pub fn span(self) -> &'t Span {
-        unsafe { &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_SPAN) as *const Span) }
-    }
-
-    #[inline]
-    pub fn optional(self) -> &'t bool {
-        unsafe {
-            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_OPTIONAL) as *const bool)
-        }
-    }
-
-    #[inline]
-    pub fn type_arguments(self) -> &'t Option<Box<'a, TSTypeParameterInstantiation<'a>>> {
-        unsafe {
-            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_TYPE_ARGUMENTS)
-                as *const Option<Box<'a, TSTypeParameterInstantiation<'a>>>)
-        }
-    }
-
-    #[inline]
-    pub fn arguments(self) -> &'t Vec<'a, Argument<'a>> {
-        unsafe {
-            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_ARGUMENTS)
-                as *const Vec<'a, Argument<'a>>)
-        }
-    }
-}
-
-impl<'a, 't> GetAddress for LeadingDotExpressionWithoutProperty<'a, 't> {
-    #[inline]
-    fn address(&self) -> Address {
-        unsafe { Address::from_ptr(self.0) }
-    }
-}
+pub(crate) const OFFSET_LEADING_DOT_EXPRESSION_EXPRESSION: usize =
+    offset_of!(LeadingDotExpression, expression);
 
 #[repr(transparent)]
 #[derive(Clone, Copy, Debug)]
@@ -3535,14 +3492,6 @@ impl<'a, 't> LeadingDotExpressionWithoutTypeArguments<'a, 't> {
     }
 
     #[inline]
-    pub fn property(self) -> &'t IdentifierName<'a> {
-        unsafe {
-            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_PROPERTY)
-                as *const IdentifierName<'a>)
-        }
-    }
-
-    #[inline]
     pub fn optional(self) -> &'t bool {
         unsafe {
             &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_OPTIONAL) as *const bool)
@@ -3554,6 +3503,14 @@ impl<'a, 't> LeadingDotExpressionWithoutTypeArguments<'a, 't> {
         unsafe {
             &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_ARGUMENTS)
                 as *const Vec<'a, Argument<'a>>)
+        }
+    }
+
+    #[inline]
+    pub fn expression(self) -> &'t Expression<'a> {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_EXPRESSION)
+                as *const Expression<'a>)
         }
     }
 }
@@ -3579,11 +3536,47 @@ impl<'a, 't> LeadingDotExpressionWithoutArguments<'a, 't> {
     }
 
     #[inline]
-    pub fn property(self) -> &'t IdentifierName<'a> {
+    pub fn optional(self) -> &'t bool {
         unsafe {
-            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_PROPERTY)
-                as *const IdentifierName<'a>)
+            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_OPTIONAL) as *const bool)
         }
+    }
+
+    #[inline]
+    pub fn type_arguments(self) -> &'t Option<Box<'a, TSTypeParameterInstantiation<'a>>> {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_TYPE_ARGUMENTS)
+                as *const Option<Box<'a, TSTypeParameterInstantiation<'a>>>)
+        }
+    }
+
+    #[inline]
+    pub fn expression(self) -> &'t Expression<'a> {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_EXPRESSION)
+                as *const Expression<'a>)
+        }
+    }
+}
+
+impl<'a, 't> GetAddress for LeadingDotExpressionWithoutArguments<'a, 't> {
+    #[inline]
+    fn address(&self) -> Address {
+        unsafe { Address::from_ptr(self.0) }
+    }
+}
+
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug)]
+pub struct LeadingDotExpressionWithoutExpression<'a, 't>(
+    pub(crate) *const LeadingDotExpression<'a>,
+    pub(crate) PhantomData<&'t ()>,
+);
+
+impl<'a, 't> LeadingDotExpressionWithoutExpression<'a, 't> {
+    #[inline]
+    pub fn span(self) -> &'t Span {
+        unsafe { &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_SPAN) as *const Span) }
     }
 
     #[inline]
@@ -3600,9 +3593,17 @@ impl<'a, 't> LeadingDotExpressionWithoutArguments<'a, 't> {
                 as *const Option<Box<'a, TSTypeParameterInstantiation<'a>>>)
         }
     }
+
+    #[inline]
+    pub fn arguments(self) -> &'t Vec<'a, Argument<'a>> {
+        unsafe {
+            &*((self.0 as *const u8).add(OFFSET_LEADING_DOT_EXPRESSION_ARGUMENTS)
+                as *const Vec<'a, Argument<'a>>)
+        }
+    }
 }
 
-impl<'a, 't> GetAddress for LeadingDotExpressionWithoutArguments<'a, 't> {
+impl<'a, 't> GetAddress for LeadingDotExpressionWithoutExpression<'a, 't> {
     #[inline]
     fn address(&self) -> Address {
         unsafe { Address::from_ptr(self.0) }

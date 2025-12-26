@@ -1714,11 +1714,11 @@ pub mod walk_mut {
         let kind = AstType::LeadingDotExpression;
         visitor.enter_node(kind);
         visitor.visit_span(&mut it.span);
-        visitor.visit_identifier_name(&mut it.property);
         if let Some(type_arguments) = &mut it.type_arguments {
             visitor.visit_ts_type_parameter_instantiation(type_arguments);
         }
         visitor.visit_arguments(&mut it.arguments);
+        visitor.visit_expression(&mut it.expression);
         visitor.leave_node(kind);
     }
 

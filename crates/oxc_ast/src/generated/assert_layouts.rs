@@ -152,13 +152,13 @@ const _: () = {
     assert!(offset_of!(PrivateFieldExpression, optional) == 48);
 
     // Padding: 7 bytes
-    assert!(size_of::<LeadingDotExpression>() == 72);
+    assert!(size_of::<LeadingDotExpression>() == 64);
     assert!(align_of::<LeadingDotExpression>() == 8);
     assert!(offset_of!(LeadingDotExpression, span) == 0);
-    assert!(offset_of!(LeadingDotExpression, property) == 8);
-    assert!(offset_of!(LeadingDotExpression, optional) == 64);
-    assert!(offset_of!(LeadingDotExpression, type_arguments) == 32);
-    assert!(offset_of!(LeadingDotExpression, arguments) == 40);
+    assert!(offset_of!(LeadingDotExpression, optional) == 56);
+    assert!(offset_of!(LeadingDotExpression, type_arguments) == 8);
+    assert!(offset_of!(LeadingDotExpression, arguments) == 16);
+    assert!(offset_of!(LeadingDotExpression, expression) == 40);
 
     // Padding: 6 bytes
     assert!(size_of::<CallExpression>() == 64);
@@ -1825,13 +1825,13 @@ const _: () = if cfg!(target_family = "wasm") || align_of::<u64>() == 8 {
     assert!(offset_of!(PrivateFieldExpression, optional) == 32);
 
     // Padding: 3 bytes
-    assert!(size_of::<LeadingDotExpression>() == 48);
+    assert!(size_of::<LeadingDotExpression>() == 40);
     assert!(align_of::<LeadingDotExpression>() == 4);
     assert!(offset_of!(LeadingDotExpression, span) == 0);
-    assert!(offset_of!(LeadingDotExpression, property) == 8);
-    assert!(offset_of!(LeadingDotExpression, optional) == 44);
-    assert!(offset_of!(LeadingDotExpression, type_arguments) == 24);
-    assert!(offset_of!(LeadingDotExpression, arguments) == 28);
+    assert!(offset_of!(LeadingDotExpression, optional) == 36);
+    assert!(offset_of!(LeadingDotExpression, type_arguments) == 8);
+    assert!(offset_of!(LeadingDotExpression, arguments) == 12);
+    assert!(offset_of!(LeadingDotExpression, expression) == 28);
 
     // Padding: 2 bytes
     assert!(size_of::<CallExpression>() == 40);

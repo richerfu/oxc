@@ -328,6 +328,7 @@ impl<'a> Visit<'a> for ChildScopeCollector {
             self.visit_ts_type_parameter_instantiation(type_arguments);
         }
         self.visit_arguments(&it.arguments);
+        self.visit_expression(&it.expression);
     }
 
     #[inline]

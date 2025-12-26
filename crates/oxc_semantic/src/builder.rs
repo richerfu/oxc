@@ -1957,13 +1957,16 @@ impl<'a> Visit<'a> for SemanticBuilder<'a> {
         let kind = AstKind::LeadingDotExpression(self.alloc(it));
         self.enter_node(kind);
         self.visit_span(&it.span);
-        self.visit_identifier_name(&it.property);
+        // LeadingDotExpression no longer has a property field
+        // The property information is in the expression field
         if let Some(type_arguments) = &it.type_arguments {
             self.visit_ts_type_parameter_instantiation(type_arguments);
         }
         for arg in &it.arguments {
             self.visit_argument(arg);
         }
+        // Visit the expression field which contains the full chain
+        self.visit_expression(&it.expression);
         self.leave_node(kind);
     }
 

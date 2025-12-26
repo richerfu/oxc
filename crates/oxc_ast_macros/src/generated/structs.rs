@@ -78,7 +78,7 @@ pub static STRUCTS: phf::Map<&'static str, StructDetails> = ::phf::Map {
         ("TSInterfaceBody", StructDetails { field_order: None }),
         ("UpdateExpression", StructDetails { field_order: Some(&[0, 2, 3, 1]) }),
         ("V8IntrinsicExpression", StructDetails { field_order: None }),
-        ("LeadingDotExpression", StructDetails { field_order: Some(&[0, 1, 4, 2, 3]) }),
+        ("LeadingDotExpression", StructDetails { field_order: Some(&[0, 4, 1, 2, 3]) }),
         ("JSXClosingFragment", StructDetails { field_order: None }),
         ("StaticImport", StructDetails { field_order: None }),
         ("BlockStatement", StructDetails { field_order: None }),

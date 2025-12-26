@@ -1259,26 +1259,26 @@ export class LeadingDotExpression {
     return constructU32(internal.pos + 4, internal.ast);
   }
 
-  get property() {
-    const internal = this.#internal;
-    return new IdentifierName(internal.pos + 8, internal.ast);
-  }
-
   get optional() {
     const internal = this.#internal;
-    return constructBool(internal.pos + 64, internal.ast);
+    return constructBool(internal.pos + 56, internal.ast);
   }
 
   get typeArguments() {
     const internal = this.#internal;
-    return constructOptionBoxTSTypeParameterInstantiation(internal.pos + 32, internal.ast);
+    return constructOptionBoxTSTypeParameterInstantiation(internal.pos + 8, internal.ast);
   }
 
   get arguments() {
     const internal = this.#internal,
       cached = internal.$arguments;
     if (cached !== void 0) return cached;
-    return (internal.$arguments = constructVecArgument(internal.pos + 40, internal.ast));
+    return (internal.$arguments = constructVecArgument(internal.pos + 16, internal.ast));
+  }
+
+  get expression() {
+    const internal = this.#internal;
+    return constructExpression(internal.pos + 40, internal.ast);
   }
 
   toJSON() {
@@ -1286,10 +1286,10 @@ export class LeadingDotExpression {
       type: "LeadingDotExpression",
       start: this.start,
       end: this.end,
-      property: this.property,
       optional: this.optional,
       typeArguments: this.typeArguments,
       arguments: this.arguments,
+      expression: this.expression,
     };
   }
 

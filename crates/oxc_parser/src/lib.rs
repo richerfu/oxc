@@ -1060,9 +1060,16 @@ mod test {
             if let Some(body) = &func.body {
                 // Should have 1 chained expression statement
                 assert_eq!(body.statements.len(), 1, "Should have 1 chained statement");
-                // The statement should be a call expression chain
+                // The statement should be a LeadingDotExpression with chained calls in expression field
                 if let Statement::ExpressionStatement(expr_stmt) = &body.statements[0] {
-                    assert!(matches!(expr_stmt.expression, Expression::CallExpression(_)));
+                    assert!(matches!(expr_stmt.expression, Expression::LeadingDotExpression(_)));
+                    if let Expression::LeadingDotExpression(leading_dot) = &expr_stmt.expression {
+                        // expression field is now required (not Option)
+                        assert!(
+                            matches!(leading_dot.expression, Expression::CallExpression(_)),
+                            "LeadingDotExpression.expression should contain CallExpression"
+                        );
+                    }
                 } else {
                     panic!("Statement should be ExpressionStatement");
                 }

@@ -276,14 +276,14 @@ impl<'a> Dummy<'a> for PrivateFieldExpression<'a> {
 impl<'a> Dummy<'a> for LeadingDotExpression<'a> {
     /// Create a dummy [`LeadingDotExpression`].
     ///
-    /// Does not allocate any data into arena.
+    /// Has cost of making 1 allocation (8 bytes).
     fn dummy(allocator: &'a Allocator) -> Self {
         Self {
             span: Dummy::dummy(allocator),
-            property: Dummy::dummy(allocator),
             optional: Dummy::dummy(allocator),
             type_arguments: Dummy::dummy(allocator),
             arguments: Dummy::dummy(allocator),
+            expression: Dummy::dummy(allocator),
         }
     }
 }

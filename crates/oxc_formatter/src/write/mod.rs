@@ -268,20 +268,17 @@ fn is_arkui_leading_dot_expression<'a>(expr: &AstNode<'a, Expression<'a>>) -> bo
 
 impl<'a> FormatWrite<'a> for AstNode<'a, LeadingDotExpression<'a>> {
     fn write(&self, f: &mut Formatter<'_, 'a>) {
-        let property = self.property();
-        let type_arguments = self.type_arguments();
-        let arguments = self.arguments();
         let optional = self.optional();
+        let expression = self.expression();
 
-        // Format: .property<Type>(args) or ?.property<Type>(args)
+        // Format: .expression or ?.expression
+        // The expression field contains the full chain (e.g., fontSize(size).fancy(12).hello())
         write!(
             f,
             [group(&format_args!(
                 soft_line_break_or_space(),
                 optional.then_some("?.").unwrap_or("."),
-                property,
-                type_arguments,
-                arguments
+                expression
             ))]
         );
     }

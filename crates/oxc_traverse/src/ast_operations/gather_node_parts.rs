@@ -253,9 +253,8 @@ impl<'a> GatherNodeParts<'a> for MemberExpression<'a> {
             }
             MemberExpression::PrivateFieldExpression(expr) => {
                 expr.gather(f);
-            }
-            // LeadingDotExpression is now a separate Expression type, not a MemberExpression
-            // So it's handled in the Expression match above
+            } // LeadingDotExpression is now a separate Expression type, not a MemberExpression
+              // So it's handled in the Expression match above
         }
     }
 }

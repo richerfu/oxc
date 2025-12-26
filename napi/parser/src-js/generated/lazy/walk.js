@@ -840,9 +840,9 @@ function walkLeadingDotExpression(pos, ast, visitors) {
     if (enter !== null) enter(node);
   }
 
-  walkIdentifierName(pos + 8, ast, visitors);
-  walkOptionBoxTSTypeParameterInstantiation(pos + 32, ast, visitors);
-  walkVecArgument(pos + 40, ast, visitors);
+  walkOptionBoxTSTypeParameterInstantiation(pos + 8, ast, visitors);
+  walkVecArgument(pos + 16, ast, visitors);
+  walkExpression(pos + 40, ast, visitors);
 
   if (exit !== null) exit(node);
 }

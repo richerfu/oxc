@@ -595,12 +595,13 @@ pub struct PrivateFieldExpression<'a> {
 #[estree(via = LeadingDotExpressionConverter)]
 pub struct LeadingDotExpression<'a> {
     pub span: Span,
-    /// The property name after the leading dot (e.g., `backgroundColor` in `.backgroundColor()`)
-    pub property: IdentifierName<'a>,
     pub optional: bool, // for optional chaining
     #[ts]
     pub type_arguments: Option<Box<'a, TSTypeParameterInstantiation<'a>>>,
     pub arguments: Vec<'a, Argument<'a>>,
+    /// The chained expression after the leading dot call (e.g., `.fontSize(size).fancy()`)
+    /// This field contains the entire chain of calls/member accesses starting from the leading dot
+    pub expression: Expression<'a>,
 }
 
 /// `foo()` in `function foo() { return 1; }; foo();`

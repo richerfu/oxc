@@ -622,16 +622,16 @@ function deserializeLeadingDotExpression(pos) {
     end = deserializeU32(pos + 4),
     node = {
       type: "LeadingDotExpression",
-      property: null,
-      optional: deserializeBool(pos + 64),
+      optional: deserializeBool(pos + 56),
       typeArguments: null,
       arguments: null,
+      expression: null,
       start,
       end,
     };
-  node.property = deserializeIdentifierName(pos + 8);
-  node.typeArguments = deserializeOptionBoxTSTypeParameterInstantiation(pos + 32);
-  node.arguments = deserializeVecArgument(pos + 40);
+  node.typeArguments = deserializeOptionBoxTSTypeParameterInstantiation(pos + 8);
+  node.arguments = deserializeVecArgument(pos + 16);
+  node.expression = deserializeExpression(pos + 40);
   return node;
 }
 

@@ -165,10 +165,7 @@ impl<'a> ParserImpl<'a> {
         }
         // In ArkUI function bodies, allow ASI before a dot (even on the same line)
         // to allow separate LeadingDotExpression statements
-        if self.source_type.is_arkui()
-            && self.ctx.has_return()
-            && kind == Kind::Dot
-        {
+        if self.source_type.is_arkui() && self.ctx.has_return() && kind == Kind::Dot {
             return true;
         }
         // Allow ASI on newline, but not if the current token is a comma, colon, closing bracket/paren,

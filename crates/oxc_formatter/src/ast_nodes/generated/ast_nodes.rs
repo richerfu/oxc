@@ -1758,31 +1758,18 @@ impl<'a> AstNode<'a, PrivateFieldExpression<'a>> {
 
 impl<'a> AstNode<'a, LeadingDotExpression<'a>> {
     #[inline]
-    pub fn property(&self) -> &AstNode<'a, IdentifierName<'a>> {
-        let following_span = self
-            .inner
-            .type_arguments
-            .as_deref()
-            .map(GetSpan::span)
-            .or_else(|| self.inner.arguments.first().map(GetSpan::span))
-            .or(self.following_span);
-        self.allocator.alloc(AstNode {
-            inner: &self.inner.property,
-            allocator: self.allocator,
-            parent: self.allocator.alloc(AstNodes::LeadingDotExpression(transmute_self(self))),
-            following_span,
-        })
-    }
-
-    #[inline]
     pub fn optional(&self) -> bool {
         self.inner.optional
     }
 
     #[inline]
     pub fn type_arguments(&self) -> Option<&AstNode<'a, TSTypeParameterInstantiation<'a>>> {
-        let following_span =
-            self.inner.arguments.first().map(GetSpan::span).or(self.following_span);
+        let following_span = self
+            .inner
+            .arguments
+            .first()
+            .map(GetSpan::span)
+            .or_else(|| Some(self.inner.expression.span()));
         self.allocator
             .alloc(self.inner.type_arguments.as_ref().map(|inner| AstNode {
                 inner: inner.as_ref(),
@@ -1795,9 +1782,20 @@ impl<'a> AstNode<'a, LeadingDotExpression<'a>> {
 
     #[inline]
     pub fn arguments(&self) -> &AstNode<'a, Vec<'a, Argument<'a>>> {
-        let following_span = self.following_span;
+        let following_span = Some(self.inner.expression.span());
         self.allocator.alloc(AstNode {
             inner: &self.inner.arguments,
+            allocator: self.allocator,
+            parent: self.allocator.alloc(AstNodes::LeadingDotExpression(transmute_self(self))),
+            following_span,
+        })
+    }
+
+    #[inline]
+    pub fn expression(&self) -> &AstNode<'a, Expression<'a>> {
+        let following_span = self.following_span;
+        self.allocator.alloc(AstNode {
+            inner: &self.inner.expression,
             allocator: self.allocator,
             parent: self.allocator.alloc(AstNodes::LeadingDotExpression(transmute_self(self))),
             following_span,

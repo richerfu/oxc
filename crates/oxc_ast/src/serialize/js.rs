@@ -844,6 +844,7 @@ impl ESTree for ParenthesizedExpressionConverter<'_, '_> {
 }
 
 /// Helper struct to serialize LeadingDotExpression's callee as a MemberExpression
+/// Since LeadingDotExpression no longer has a property field, we extract it from the expression
 #[allow(dead_code)]
 struct LeadingDotExpressionCallee<'a, 'b>(&'b LeadingDotExpression<'a>);
 
@@ -853,10 +854,13 @@ impl ESTree for LeadingDotExpressionCallee<'_, '_> {
         let mut state = serializer.serialize_struct();
         state.serialize_field("type", &JsonSafeString("MemberExpression"));
         state.serialize_field("object", &Null(()));
-        state.serialize_field("property", &expr.property);
+        // Extract property from the expression field (which should be a CallExpression)
+        // For now, we'll serialize a placeholder since property is no longer stored
+        // The actual property information is in the expression field
+        state.serialize_field("property", &Null(()));
         state.serialize_field("optional", &expr.optional);
         state.serialize_field("computed", &crate::serialize::basic::False(expr));
-        state.serialize_span(expr.property.span);
+        state.serialize_span(expr.span);
         state.end();
     }
 }
@@ -872,9 +876,11 @@ pub struct LeadingDotExpressionConverter<'a, 'b>(pub &'b LeadingDotExpression<'a
 impl ESTree for LeadingDotExpressionConverter<'_, '_> {
     fn serialize<S: Serializer>(&self, serializer: S) {
         let expr = self.0;
+        // Since LeadingDotExpression now contains the entire expression chain in the expression field,
+        // we serialize it directly. The expression field contains the full chain (e.g., .fontSize(size).fancy())
         let mut state = serializer.serialize_struct();
-        state.serialize_field("type", &JsonSafeString("CallExpression"));
-        state.serialize_field("callee", &LeadingDotExpressionCallee(expr));
+        state.serialize_field("type", &JsonSafeString("LeadingDotExpression"));
+        state.serialize_field("expression", &expr.expression);
         if let Some(type_args) = &expr.type_arguments {
             state.serialize_field("typeArguments", type_args);
         }

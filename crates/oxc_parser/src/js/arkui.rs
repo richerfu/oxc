@@ -81,14 +81,7 @@ impl<'a> ParserImpl<'a> {
 
         let declare = modifiers.contains(ModifierKind::Declare);
 
-        self.ast.alloc_struct_statement(
-            span,
-            decorators,
-            id,
-            type_parameters,
-            body,
-            declare,
-        )
+        self.ast.alloc_struct_statement(span, decorators, id, type_parameters, body, declare)
     }
 
     /// Parse struct body containing properties and methods
@@ -155,8 +148,13 @@ impl<'a> ParserImpl<'a> {
         }
 
         // Parse property or method declaration (similar to class)
-        if self.cur_kind().is_identifier_or_keyword() || self.at(Kind::Star) || self.at(Kind::LBrack) {
-            return self.parse_property_or_method_declaration_for_struct(span, r#type, &modifiers, decorators);
+        if self.cur_kind().is_identifier_or_keyword()
+            || self.at(Kind::Star)
+            || self.at(Kind::LBrack)
+        {
+            return self.parse_property_or_method_declaration_for_struct(
+                span, r#type, &modifiers, decorators,
+            );
         }
 
         // Otherwise parse as property definition
@@ -186,14 +184,7 @@ impl<'a> ParserImpl<'a> {
         // Check if this is a method (generator or has parentheses or type parameters)
         if generator || matches!(self.cur_kind(), Kind::LParen | Kind::LAngle) {
             return StructElement::MethodDefinition(self.parse_method_declaration_for_struct(
-                span,
-                r#type,
-                generator,
-                name,
-                computed,
-                optional,
-                modifiers,
-                decorators,
+                span, r#type, generator, name, computed, optional, modifiers, decorators,
             ));
         }
 
@@ -227,23 +218,23 @@ impl<'a> ParserImpl<'a> {
         modifiers: &Modifiers<'a>,
         decorators: Vec<'a, Decorator<'a>>,
     ) -> Box<'a, MethodDefinition<'a>> {
-            let value = self.parse_method(
-                modifiers.contains(ModifierKind::Async),
-                generator,
-                FunctionKind::ClassMethod,
-            );
+        let value = self.parse_method(
+            modifiers.contains(ModifierKind::Async),
+            generator,
+            FunctionKind::ClassMethod,
+        );
         self.ast.alloc_method_definition(
-                self.end_span(span),
+            self.end_span(span),
             r#type,
-                decorators,
-                name,
-                value,
-                MethodDefinitionKind::Method,
-                computed,
-                modifiers.contains(ModifierKind::Static),
-                modifiers.contains(ModifierKind::Override),
-                optional,
-                modifiers.accessibility(),
+            decorators,
+            name,
+            value,
+            MethodDefinitionKind::Method,
+            computed,
+            modifiers.contains(ModifierKind::Static),
+            modifiers.contains(ModifierKind::Override),
+            optional,
+            modifiers.accessibility(),
         )
     }
 

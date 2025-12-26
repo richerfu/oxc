@@ -634,20 +634,13 @@ unsafe fn walk_leading_dot_expression<'a, State, Tr: Traverse<'a, State>>(
     ctx: &mut TraverseCtx<'a, State>,
 ) {
     traverser.enter_leading_dot_expression(&mut *node, ctx);
-    let pop_token = ctx.push_stack(Ancestor::LeadingDotExpressionProperty(
-        ancestor::LeadingDotExpressionWithoutProperty(node, PhantomData),
+    let pop_token = ctx.push_stack(Ancestor::LeadingDotExpressionTypeArguments(
+        ancestor::LeadingDotExpressionWithoutTypeArguments(node, PhantomData),
     ));
-    walk_identifier_name(
-        traverser,
-        (node as *mut u8).add(ancestor::OFFSET_LEADING_DOT_EXPRESSION_PROPERTY)
-            as *mut IdentifierName,
-        ctx,
-    );
     if let Some(field) = &mut *((node as *mut u8)
         .add(ancestor::OFFSET_LEADING_DOT_EXPRESSION_TYPE_ARGUMENTS)
         as *mut Option<Box<TSTypeParameterInstantiation>>)
     {
-        ctx.retag_stack(AncestorType::LeadingDotExpressionTypeArguments);
         walk_ts_type_parameter_instantiation(traverser, (&mut **field) as *mut _, ctx);
     }
     ctx.retag_stack(AncestorType::LeadingDotExpressionArguments);
@@ -656,6 +649,13 @@ unsafe fn walk_leading_dot_expression<'a, State, Tr: Traverse<'a, State>>(
     {
         walk_argument(traverser, item as *mut _, ctx);
     }
+    ctx.retag_stack(AncestorType::LeadingDotExpressionExpression);
+    walk_expression(
+        traverser,
+        (node as *mut u8).add(ancestor::OFFSET_LEADING_DOT_EXPRESSION_EXPRESSION)
+            as *mut Expression,
+        ctx,
+    );
     ctx.pop_stack(pop_token);
     traverser.exit_leading_dot_expression(&mut *node, ctx);
 }

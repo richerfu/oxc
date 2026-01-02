@@ -1152,7 +1152,7 @@ pub fn check_unary_expression(unary_expr: &UnaryExpression, ctx: &SemanticBuilde
                 if let ChainElement::PrivateFieldExpression(e) = &chain_expr.expression {
                     ctx.error(diagnostics::delete_private_field(e.field.span));
                 }
-            },
+            }
             _ => {}
         }
     }

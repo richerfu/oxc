@@ -220,8 +220,10 @@ impl<'a> Format<'a> for MemberChain<'a, '_> {
         // Only LeadingDotExpression should be treated as leading-dot, not regular `this.property`
         // We check all members, not just the first one, because in chained calls like
         // .borderRadius(20).borderWidth(1), the first member is a CallExpression
+        // Also check if the root CallExpression's parent is LeadingDotExpression,
+        // which means this chain is inside a LeadingDotExpression's expression field
         let is_arkui_leading_dot = f.context().source_type().is_arkui()
-            && self.members().any(|member| {
+            && (self.members().any(|member| {
                 matches!(
                     member,
                     ChainMember::Node(node) if matches!(
@@ -229,7 +231,7 @@ impl<'a> Format<'a> for MemberChain<'a, '_> {
                         Expression::LeadingDotExpression(_)
                     )
                 )
-            });
+            }) || matches!(self.root.parent, AstNodes::LeadingDotExpression(_)));
 
         // For ArkUI leading-dot expressions, use the same break logic as ArkUI components
         let should_break_arkui_style = if is_arkui_leading_dot {

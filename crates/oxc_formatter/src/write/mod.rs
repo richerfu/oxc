@@ -606,6 +606,7 @@ fn expression_statement_needs_semicolon<'a>(
                     | Expression::TSTypeAssertion(_)
                     | Expression::ArrowFunctionExpression(_)
                     | Expression::JSXElement(_)
+                    | Expression::JSXFragment(_)
                     | Expression::TemplateLiteral(_) => true,
                     Expression::UnaryExpression(unary) => {
                         matches!(
